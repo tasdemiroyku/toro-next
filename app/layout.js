@@ -12,20 +12,21 @@ export const metadata = {
     default: 'Toro · Torino',
     template: '%s · Toro'
   },
+  icons: {
+    // Standard favicon for browsers
+    icon: '/favicon.svg',
+    // Specifically for iPhone/iPad home screen
+    apple: '/apple-touch-icon.svg',
+  },
   description: 'Il marketplace degli studenti di Torino. Trova studenti per ripetizioni, pulizie, aiuto con documenti consolari e molto altro.',
   keywords: ['studenti torino', 'ripetizioni torino', 'pulizie torino', 'lavoro studenti torino', 'marketplace torino', 'öğrenci hizmetleri torino'],
   authors: [{ name: 'Toro' }],
   creator: 'Toro',
-  metadataBase: new URL('https://toro-peach.vercel.app'),
-  icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
-  },
+  metadataBase: new URL('https://toro-next.vercel.app'),
   openGraph: {
     title: 'Toro · Torino',
     description: 'Il marketplace degli studenti di Torino.',
-    url: 'https://toro-peach.vercel.app',
+    url: 'https://toro-next.vercel.app',
     siteName: 'Toro',
     images: [
       {
@@ -53,7 +54,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="it" className={cormorant.variable}>
-      <body className="bg-[#FAFAF7] font-sans antialiased relative min-h-screen">
+      <body className="bg-[#FAFAF7] font-sans antialiased min-h-screen">
         {children}
       </body>
     </html>

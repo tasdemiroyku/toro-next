@@ -76,7 +76,7 @@ export default function LoginPage() {
           alt="Torino"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-[#132600]/80 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-[#132600]/60 backdrop-blur-sm" />
 
         {/* Card */}
         <div className="relative z-10 bg-[#FAFAF7] rounded-[2rem] p-8 w-full max-w-[420px] flex flex-col gap-6 shadow-2xl">

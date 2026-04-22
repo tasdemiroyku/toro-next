@@ -18,7 +18,7 @@ function ToretBull({ className = "" }) {
   )
 }
 
-function UserDropdown({ user }) {
+function UserDropdown({ user, setUser }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -26,29 +26,32 @@ function UserDropdown({ user }) {
 
   useEffect(() => {
     const handler = (e) => {
-      // Close only if clicked outside the wrapper
       if (ref.current && !ref.current.contains(e.target)) setOpen(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  // Open immediately on hover
   const handleMouseEnter = () => {
     clearTimeout(timeoutRef.current)
     setOpen(true)
   }
 
-  // Close with a slight delay so moving the mouse across the gap doesn't close it
   const handleMouseLeave = () => {
     timeoutRef.current = setTimeout(() => {
       setOpen(false)
-    }, 150) // 150ms delay
+    }, 150)
   }
 
   const handleLogout = async () => {
+    // Optimistic UI update: instantly update state to clear header
+    setUser(null)
+    setOpen(false)
+    
     const supabase = createClient()
     await supabase.auth.signOut()
+    
+    // Refresh to clear all global state
     window.location.href = '/'
   }
 
@@ -59,13 +62,10 @@ function UserDropdown({ user }) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-
-      {/* Invisible bridge to catch mouse moving between button and dropdown */}
       {open && <div className="absolute top-full right-0 w-full h-3 bg-transparent z-40" />}
 
-      {/* Trigger button — SVG Profile Icon */}
       <button
-        onClick={() => setOpen(!open)} // Kept onClick for mobile/touch devices
+        onClick={() => setOpen(!open)}
         className="w-9 h-9 rounded-full bg-[#132600] border-2 border-[#FAFAF7]/20 hover:border-[#C9963E] transition flex items-center justify-center shrink-0"
         aria-label="User menu"
       >
@@ -75,7 +75,6 @@ function UserDropdown({ user }) {
         </svg>
       </button>
 
-      {/* Dropdown */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -85,7 +84,6 @@ function UserDropdown({ user }) {
             transition={{ duration: 0.15 }}
             className="absolute right-0 mt-2 w-52 bg-[#FAFAF7] rounded-2xl shadow-xl border border-[#132600]/10 overflow-hidden z-50"
           >
-            {/* User info header */}
             <div className="px-4 py-3 border-b border-[#132600]/8">
               <p className="text-xs font-semibold text-[#132600] truncate">
                 {user?.user_metadata?.full_name || 'My Account'}
@@ -95,13 +93,11 @@ function UserDropdown({ user }) {
               </p>
             </div>
 
-            {/* Menu items */}
             <div className="py-1">
               <button
                 onClick={() => { setOpen(false); router.push('/profile') }}
                 className="w-full text-left px-4 py-2.5 text-sm text-[#132600] hover:bg-[#132600]/5 transition flex items-center gap-2.5"
               >
-                {/* User silhouette icon */}
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#132600" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                   <circle cx="12" cy="7" r="4"/>
@@ -120,7 +116,6 @@ function UserDropdown({ user }) {
               </button>
             </div>
 
-            {/* Logout */}
             <div className="border-t border-[#132600]/8 py-1">
               <button
                 onClick={handleLogout}
@@ -134,7 +129,6 @@ function UserDropdown({ user }) {
                 Log out
               </button>
             </div>
-
           </motion.div>
         )}
       </AnimatePresence>
@@ -184,7 +178,6 @@ export default function Header({ shrink = false, user: initialUser = null }) {
             </motion.span>
           </Link>
 
-          {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
             <Link href="/listings" className="text-sm text-[#FAFAF7]/70 hover:text-[#FAFAF7] transition font-medium whitespace-nowrap">
               Find Services
@@ -195,11 +188,9 @@ export default function Header({ shrink = false, user: initialUser = null }) {
             >
               Offer Skills
             </button>
-            <Link href="#how" className="text-sm text-[#FAFAF7]/70 hover:text-[#FAFAF7] transition font-medium whitespace-nowrap">
-              How it works
-            </Link>
             {user ? (
-              <UserDropdown user={user} />
+              // Passing setUser down to enable immediate header updates
+              <UserDropdown user={user} setUser={setUser} />
             ) : (
               <button
                 onClick={() => router.push('/login')}
@@ -210,9 +201,8 @@ export default function Header({ shrink = false, user: initialUser = null }) {
             )}
           </div>
 
-          {/* Mobile */}
           <div className="flex md:hidden items-center gap-3">
-            {user && <UserDropdown user={user} />}
+            {user && <UserDropdown user={user} setUser={setUser} />}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="flex flex-col gap-1.5 p-2"
@@ -245,9 +235,6 @@ export default function Header({ shrink = false, user: initialUser = null }) {
             >
               Offer Skills
             </button>
-            <Link href="#how" onClick={() => setMobileOpen(false)} className="text-base text-[#FAFAF7]/70 hover:text-[#FAFAF7] transition font-medium py-2">
-              How it works
-            </Link>
             {!user && (
               <div className="pt-2 border-t border-[#FAFAF7]/10">
                 <button
