@@ -1,14 +1,23 @@
+// app/page.js
 import { createClient } from '@/utils/supabase/server'
 import HomeClient from '@/components/HomeClient'
 
-export const metadata = {
-  title: 'Toro · Torino',
-  description: 'Il marketplace degli studenti di Torino. Trova studenti per ripetizioni, pulizie, aiuto con documenti consolari e molto altro.',
-}
-
 export default async function Home() {
   const supabase = await createClient()
+  
   const { data: { user } } = await supabase.auth.getUser()
 
-  return <HomeClient user={user} />
+  // Explicitly selecting with the relationship hint
+  const { data: listings, error } = await supabase
+    .from('listings')
+    .select('*, profiles(full_name, avatar_url)') 
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(4)
+
+  if (error) {
+    console.error('Supabase error on Home:', error.message)
+  }
+
+  return <HomeClient user={user} listings={listings || []} />
 }

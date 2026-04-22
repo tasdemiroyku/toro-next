@@ -1,0 +1,32 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/utils/supabase/server'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import ProfileClient from '@/components/ProfileClient'
+
+export const metadata = {
+  title: 'My Profile',
+}
+
+export default async function ProfilePage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) redirect('/login')
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+
+  return (
+    <div className="min-h-screen flex flex-col font-sans bg-[#FAFAF7]">
+      <Header user={user} />
+      <main className="flex-grow">
+        <ProfileClient user={user} initialProfile={profile} />
+      </main>
+      <Footer />
+    </div>
+  )
+}

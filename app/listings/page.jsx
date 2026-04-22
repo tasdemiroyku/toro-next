@@ -40,9 +40,11 @@ export default async function ListingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAF7] font-sans">
+    <div className="min-h-screen flex flex-col bg-[#FAFAF7] font-sans">
       <Header user={user} />
-      <ListingsClient user={user} initialListings={listingsWithProfiles} />
+      <main className="flex-grow max-w-6xl mx-auto px-8 py-12 w-full">
+        <ListingsClient user={user} initialListings={listingsWithProfiles} />
+      </main>
       <Footer />
     </div>
   )

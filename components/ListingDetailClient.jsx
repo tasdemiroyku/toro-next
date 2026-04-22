@@ -1,0 +1,262 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/utils/supabase/client'
+
+const CATEGORY_LABELS = {
+  tutoring: 'Tutoring',
+  cleaning: 'Cleaning',
+  consular: 'Consular Docs',
+  elderly: 'Elderly Care',
+  moving: 'Moving & Delivery',
+  tech: 'Tech Help',
+  language: 'Language Exchange',
+  other: 'Other',
+}
+
+export default function ListingDetailClient({ listing: initialListing, profile, user, isOwner }) {
+  const router = useRouter()
+  const [listing, setListing] = useState(initialListing)
+  const [message, setMessage] = useState('')
+  const [messageSent, setMessageSent] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+
+  const handleContact = async () => {
+    if (!user) { router.push('/login'); return }
+    if (!message.trim() || message.length > 500) return
+
+    setSending(true)
+    const supabase = createClient()
+
+    const { error } = await supabase.from('messages').insert({
+      listing_id: listing.id,
+      sender_id: user.id,
+      receiver_id: listing.user_id,
+      content: message.trim(),
+    })
+
+    if (!error) {
+      setMessageSent(true)
+      setMessage('')
+    }
+
+    setSending(false)
+  }
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    const supabase = createClient()
+    await supabase.from('listings').delete().eq('id', listing.id)
+    router.push('/listings')
+    router.refresh()
+  }
+
+  const handleToggleActive = async () => {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('listings')
+      .update({ is_active: !listing.is_active })
+      .eq('id', listing.id)
+      .select()
+      .single()
+    if (data) setListing(data)
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto px-8 py-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        {/* Left — Main content */}
+        <div className="lg:col-span-2 flex flex-col gap-6">
+
+          {/* Back */}
+          <button
+            onClick={() => router.push('/listings')}
+            className="text-sm text-[#132600]/40 hover:text-[#132600] transition flex items-center gap-1 w-fit"
+          >
+            ← Back to listings
+          </button>
+
+          {/* Category + title */}
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-semibold text-[#C9963E] uppercase tracking-wide">
+              {CATEGORY_LABELS[listing.category] || listing.category}
+            </span>
+            <h1
+              className="text-3xl font-bold text-[#132600] leading-tight"
+              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+            >
+              {listing.title}
+            </h1>
+          </div>
+
+          {/* Meta row */}
+          <div className="flex flex-wrap gap-4 text-sm text-[#132600]/50">
+            {listing.location && <span>📍 {listing.location}</span>}
+            {listing.languages?.length > 0 && (
+              <span>🗣 {listing.languages.join(', ')}</span>
+            )}
+            <span>
+              Posted {new Date(listing.created_at).toLocaleDateString('en-GB', {
+                day: 'numeric', month: 'long', year: 'numeric'
+              })}
+            </span>
+          </div>
+
+          {/* Description */}
+          <div className="bg-white border border-[#132600]/10 rounded-2xl p-6">
+            <h2 className="text-sm font-semibold text-[#132600]/50 uppercase tracking-wide mb-3">
+              About this service
+            </h2>
+            <p className="text-sm text-[#132600]/80 leading-relaxed whitespace-pre-line">
+              {listing.description}
+            </p>
+          </div>
+
+          {/* Owner controls */}
+          {isOwner && (
+            <div className="bg-[#132600]/5 rounded-2xl p-4 flex flex-col gap-3">
+              <p className="text-xs font-semibold text-[#132600]/50 uppercase tracking-wide">
+                Your listing
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleToggleActive}
+                  className="flex-1 border border-[#132600]/15 text-[#132600] rounded-full py-2 text-sm font-semibold hover:bg-white transition"
+                >
+                  {listing.is_active ? 'Pause listing' : 'Activate listing'}
+                </button>
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="flex-1 border border-red-200 text-red-400 rounded-full py-2 text-sm font-semibold hover:bg-red-50 transition"
+                >
+                  Delete listing
+                </button>
+              </div>
+            </div>
+          )}
+
+        </div>
+
+        {/* Right — Sidebar */}
+        <div className="flex flex-col gap-4">
+
+          {/* Price card */}
+          <div className="bg-white border border-[#132600]/10 rounded-2xl p-5 flex flex-col gap-4">
+            <div>
+              <span className="text-3xl font-bold text-[#132600]">€{listing.price}</span>
+              <span className="text-sm text-[#132600]/40 ml-1">/ {listing.price_type}</span>
+            </div>
+
+            {!isOwner && (
+              <>
+                {messageSent ? (
+                  <div className="bg-[#132600]/5 rounded-xl p-4 text-sm text-[#132600] text-center">
+                    Message sent. The provider will get back to you.
+                  </div>
+                ) : (
+                  <>
+                    <textarea
+                      rows={3}
+                      maxLength={500}
+                      placeholder={user
+                        ? 'Introduce yourself and describe what you need...'
+                        : 'Log in to contact this provider'}
+                      value={message}
+                      onChange={e => setMessage(e.target.value)}
+                      disabled={!user}
+                      className="w-full border border-[#132600]/15 rounded-xl px-4 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-[#FAFAF7] resize-none disabled:opacity-50"
+                    />
+                    <button
+                      onClick={() => !user ? router.push('/login') : handleContact()}
+                      disabled={sending}
+                      className="w-full bg-[#132600] text-[#FAFAF7] rounded-full py-3 text-sm font-semibold hover:bg-[#1f3d00] transition disabled:opacity-60"
+                    >
+                      {!user ? 'Log in to contact' : sending ? 'Sending...' : 'Send message'}
+                    </button>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Provider card */}
+          <div className="bg-white border border-[#132600]/10 rounded-2xl p-5 flex flex-col gap-3">
+            <p className="text-xs font-semibold text-[#132600]/50 uppercase tracking-wide">
+              Provider
+            </p>
+            <div className="flex items-center gap-3">
+              {profile?.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  className="w-10 h-10 rounded-full object-cover"
+                  alt=""
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-[#132600] flex items-center justify-center text-[#FAFAF7] font-bold">
+                  {profile?.full_name?.[0] || '?'}
+                </div>
+              )}
+              <div>
+                <p className="text-sm font-semibold text-[#132600]">
+                  {profile?.full_name || 'Anonymous'}
+                </p>
+                {profile?.location && (
+                  <p className="text-xs text-[#132600]/40">{profile.location}</p>
+                )}
+              </div>
+            </div>
+            {profile?.bio && (
+              <p className="text-xs text-[#132600]/60 leading-relaxed">{profile.bio}</p>
+            )}
+            {profile?.languages?.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {profile.languages.map(lang => (
+                  <span
+                    key={lang}
+                    className="text-xs bg-[#132600]/5 text-[#132600]/60 px-2 py-1 rounded-full"
+                  >
+                    {lang}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+        </div>
+      </div>
+
+      {/* Delete modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">
+          <div className="bg-[#FAFAF7] rounded-3xl p-8 max-w-sm w-full flex flex-col gap-5 shadow-xl">
+            <div className="flex flex-col gap-2">
+              <h2 className="text-lg font-bold text-[#132600]">Delete this listing?</h2>
+              <p className="text-sm text-[#132600]/60 leading-relaxed">
+                This will permanently remove your listing. People won't be able to find it anymore.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 border border-[#132600]/15 text-[#132600] rounded-full py-2.5 text-sm font-semibold hover:bg-[#132600]/5 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 bg-red-500 text-white rounded-full py-2.5 text-sm font-semibold hover:bg-red-600 transition disabled:opacity-60"
+              >
+                {deleting ? 'Deleting...' : 'Yes, delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

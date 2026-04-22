@@ -59,7 +59,7 @@ const categories = [
   },
 ]
 
-export default function HomeClient({ user }) {
+export default function HomeClient({ user, listings }) {
   const router = useRouter()
   const { scrollY } = useScroll()
   const headerHeight = useTransform(scrollY, [0, 140], [140, 68])
@@ -100,66 +100,116 @@ export default function HomeClient({ user }) {
           alt="Torino"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-[#132600]/65" />
+        <div className="absolute inset-0 bg-[#132600]/65 backdrop-blur-[2px]" />
+        
         <motion.div
-          className="relative z-10 max-w-6xl mx-auto px-8 flex flex-col gap-6"
+          className="relative z-10 w-full max-w-3xl mx-auto px-8 flex flex-col items-center mt-12"
           initial="hidden"
           animate="visible"
           variants={stagger}
         >
-          <motion.span variants={fadeUp} className="text-xs font-semibold tracking-widest uppercase text-[#C9963E]">
-            Il marketplace degli studenti di Torino
-          </motion.span>
-          <motion.h1 variants={fadeUp} className="text-5xl font-bold text-[#FAFAF7] max-w-2xl leading-tight">
-            Skills, services and help — by students, for Torino.
-          </motion.h1>
-          <motion.p variants={fadeUp} className="text-lg text-[#FAFAF7]/70 max-w-xl">
-            Find trusted students for tutoring, cleaning, bureaucracy help and more.
-            Or offer your own skills and start earning — no experience needed.
-          </motion.p>
-          <motion.div variants={fadeUp} className="flex gap-4 mt-2">
-            <button
-              onClick={() => router.push('/listings')}
-              className="bg-[#C9963E] text-[#FAFAF7] px-6 py-3 rounded-full font-semibold hover:bg-[#b8852d] transition"
+          {/* Title */}
+          <motion.div variants={fadeUp} className="text-center mb-8 flex flex-col gap-4">
+            <h1 
+              className="text-4xl md:text-6xl font-bold text-[#FAFAF7] tracking-tight leading-tight"
+              style={{ fontFamily: 'var(--font-cormorant), serif' }}
             >
-              Find a Service
-            </button>
-            <button
-              onClick={() => user ? router.push('/listings/create') : router.push('/login')}
-              className="border border-[#FAFAF7]/50 text-[#FAFAF7] px-6 py-3 rounded-full font-semibold hover:bg-[#FAFAF7]/10 transition"
-            >
-              Offer Your Skills
+              Torino's Student Marketplace
+            </h1>
+            <p className="text-lg text-white/80 font-medium max-w-xl mx-auto">
+              Find trusted peers for tutoring, cleaning, or bureaucratic help.
+            </p>
+          </motion.div>
+
+          {/* Search Bar */}
+          <motion.div variants={fadeUp} className="w-full flex items-center bg-white/30 backdrop-blur-md rounded-full shadow-2xl p-2 border border-white/30">
+            <input
+              type="text"
+              autoFocus
+              placeholder="What are you looking for? (e.g., Math tutoring, cleaning...)"
+              className="flex-1 bg-transparent outline-none text-white placeholder:text-white/80 text-base py-3 px-6 font-medium"
+            />
+            <button className="bg-[#132600] hover:bg-[#1f3d00] text-[#C9963E] rounded-full p-4 transition-colors duration-200 shadow-xl">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
             </button>
           </motion.div>
         </motion.div>
       </section>
 
-      {/* Categories */}
+      {/* Active Listings Showcase */}
       <motion.section
         className="px-8 py-20 max-w-6xl mx-auto"
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
+        viewport={{ once: true, amount: 0.1 }}
         variants={stagger}
       >
-        <motion.h2 variants={fadeUp} className="text-2xl font-bold text-[#132600] mb-10">
-          What you can find on Toro
-        </motion.h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {categories.map((cat) => (
-            <motion.div
-              key={cat.label}
-              variants={fadeUp}
-              className="flex flex-col gap-3 bg-white border border-[#132600]/10 rounded-2xl py-8 px-5 hover:border-[#C9963E] hover:shadow-sm transition cursor-pointer"
-              onClick={() => router.push('/listings')}
-            >
-              <div className="w-10 h-10 rounded-xl bg-[#132600]/5 flex items-center justify-center">
-                {cat.icon}
-              </div>
-              <span className="text-sm font-bold text-[#132600]">{cat.label}</span>
-              <span className="text-xs text-[#132600]/50">{cat.desc}</span>
-            </motion.div>
-          ))}
+        {/* Section Header and View All Button */}
+        <div className="flex justify-between items-end mb-10">
+          <motion.h2 variants={fadeUp} className="text-2xl font-bold text-[#132600]">
+            Latest Active Services
+          </motion.h2>
+          <motion.button 
+            variants={fadeUp} 
+            className="text-[#C9963E] font-semibold hover:underline text-sm"
+            onClick={() => router.push('/listings')}
+          >
+            View All &rarr;
+          </motion.button>
+        </div>
+
+        {/* Listings Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {listings?.length > 0 ? (
+            listings.map((item) => (
+              <motion.div
+                key={item.id}
+                variants={fadeUp}
+                className="flex flex-col bg-white border border-[#132600]/10 rounded-2xl overflow-hidden hover:border-[#C9963E] hover:shadow-lg transition cursor-pointer group"
+                onClick={() => router.push(`/listings/${item.id}`)}
+              >
+                {/* Listing Top Header (Category Icon/Color) */}
+                <div className="h-28 bg-[#132600]/5 relative flex items-center justify-center">
+                  <span className="text-4xl opacity-20">
+                    {item.category === 'Tutoring' ? '📚' : item.category === 'Cleaning' ? '🧹' : '💼'}
+                  </span>
+                  <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-bold text-[#132600]">
+                    €{item.price} / {item.price_type === 'hour' ? 'hr' : 'job'}
+                  </div>
+                </div>
+                
+                {/* Listing Details */}
+                <div className="p-5 flex flex-col gap-2">
+                  <span className="text-xs font-semibold text-[#C9963E] uppercase tracking-wider">{item.category}</span>
+                  <h3 className="text-[#132600] font-bold leading-tight group-hover:text-[#C9963E] transition-colors line-clamp-2 min-h-[40px]">
+                    {item.title}
+                  </h3>
+                  
+                  {/* Listing Author (From profiles join) */}
+                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#132600]/5">
+                    <div className="w-6 h-6 rounded-full bg-[#132600]/10 flex items-center justify-center overflow-hidden">
+                      {item.profiles?.avatar_url ? (
+                        <img src={item.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-[10px]">👤</span>
+                      )}
+                    </div>
+                    <span className="text-xs text-[#132600]/60 font-medium truncate">
+                      {item.profiles?.full_name || 'Torino Student'}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          ) : (
+            // Empty state if no listings exist
+            <div className="col-span-full py-12 text-center text-[#132600]/40 italic">
+              No active listings found. Be the first to offer a service!
+            </div>
+          )}
         </div>
       </motion.section>
 
