@@ -4,13 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import ToretBull from '@/components/ToretBull'
-import { useSearchParams } from 'next/navigation'
 
 export default function LoginPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const modeFromUrl = searchParams.get('mode')
-  const [mode, setMode] = useState(modeFromUrl === 'signup' ? 'signup' : 'login')
+  
+  const [mode, setMode] = useState('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
@@ -41,7 +39,7 @@ export default function LoginPage() {
         options: { data: { full_name: name } }
       })
       if (error) setMessage(error.message)
-      else setMessage('Check your email to confirm your account.')
+      else setMessage("Check your email to confirm your account.")
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {
@@ -58,7 +56,7 @@ export default function LoginPage() {
   return (
     <div className="relative min-h-[calc(100vh-68px)] flex items-center justify-center px-4 py-12 font-sans overflow-hidden">
 
-      {/* Background */}
+      {/* Background Image */}
       <img
         src="/torino.jpeg"
         alt="Torino"
@@ -67,27 +65,28 @@ export default function LoginPage() {
       <div className="absolute inset-0 bg-[#132600]/60 backdrop-blur-sm" />
 
       {/* Card */}
-      <div className="relative z-10 bg-[#FAFAF7] rounded-[2rem] p-8 w-full max-w-[420px] flex flex-col gap-6 shadow-2xl">
+      <div className="relative z-10 bg-[#FAFAF7] rounded-[2rem] p-8 w-full max-w-[420px] flex flex-col gap-6 shadow-2xl border border-[#132600]/5">
 
-        {/* Logo + Title */}
+        {/* Logo + Title Section */}
         <div className="flex flex-col items-center gap-3">
           <div className="w-14 h-14 bg-[#132600] rounded-2xl flex items-center justify-center p-2">
             <ToretBull className="w-full h-full text-[#FAFAF7]" />
           </div>
-          <h1
-            className="text-3xl font-bold text-[#132600]"
+          {/* Bold + Cormorant */}
+          <h1 
+            className="text-4xl font-bold text-[#132600]" 
             style={{ fontFamily: 'var(--font-cormorant), serif' }}
           >
             {mode === 'login' ? 'Welcome back.' : 'Join Toro.'}
           </h1>
-          <p className="text-sm text-[#132600]/50 text-center">
+          <p className="text-sm text-[#132600]/50 text-center font-medium">
             {mode === 'login'
               ? 'Log in to find or offer services in Torino.'
-              : 'Create your account — it\'s free.'}
+              : "Create your account — it's free."}
           </p>
         </div>
 
-        {/* Google */}
+        {/* Google Authentication */}
         <button
           onClick={handleGoogle}
           className="flex items-center justify-center gap-3 border border-[#132600]/15 rounded-full py-3 px-6 text-sm font-medium text-[#132600] hover:bg-[#132600]/5 transition"
@@ -104,11 +103,11 @@ export default function LoginPage() {
         {/* Divider */}
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-[#132600]/10" />
-          <span className="text-xs text-[#132600]/30">or</span>
+          <span className="text-xs text-[#132600]/30 font-medium">or</span>
           <div className="flex-1 h-px bg-[#132600]/10" />
         </div>
 
-        {/* Form */}
+        {/* Input Fields */}
         <div className="flex flex-col gap-3">
           {mode === 'signup' && (
             <input
@@ -116,7 +115,7 @@ export default function LoginPage() {
               placeholder="Full name"
               value={name}
               onChange={e => setName(e.target.value)}
-              className="border border-[#132600]/15 rounded-full px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white"
+              className="border border-[#132600]/15 rounded-full px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white font-medium"
             />
           )}
           <input
@@ -125,7 +124,7 @@ export default function LoginPage() {
             value={email}
             onChange={e => setEmail(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-            className="border border-[#132600]/15 rounded-full px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white"
+            className="border border-[#132600]/15 rounded-full px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white font-medium"
           />
           <input
             type="password"
@@ -133,30 +132,30 @@ export default function LoginPage() {
             value={password}
             onChange={e => setPassword(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-            className="border border-[#132600]/15 rounded-full px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white"
+            className="border border-[#132600]/15 rounded-full px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white font-medium"
           />
         </div>
 
-        {/* Submit */}
+        {/* Submit Button */}
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="bg-[#132600] text-[#FAFAF7] rounded-full py-3 text-sm font-semibold hover:bg-[#1f3d00] transition disabled:opacity-60"
+          className="bg-[#132600] text-[#FAFAF7] rounded-full py-3.5 text-sm font-semibold hover:bg-[#1f3d00] transition disabled:opacity-60 shadow-sm"
         >
-          {loading ? 'Please wait...' : mode === 'login' ? 'Log in' : 'Create account'}
+          {loading ? 'Processing...' : mode === 'login' ? 'Log in' : 'Create account'}
         </button>
 
-        {/* Message */}
+        {/* Status Message */}
         {message && (
-          <p className="text-xs text-center text-[#132600]/60">{message}</p>
+          <p className="text-xs text-center text-[#132600]/60 font-medium leading-relaxed">{message}</p>
         )}
 
-        {/* Toggle */}
-        <p className="text-xs text-center text-[#132600]/40">
-          {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
+        {/* Toggle between Login/Signup */}
+        <p className="text-xs text-center text-[#132600]/40 font-medium">
+          {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
           <button
             onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setMessage('') }}
-            className="text-[#C9963E] font-semibold"
+            className="text-[#C9963E] font-semibold hover:underline"
           >
             {mode === 'login' ? 'Sign up' : 'Log in'}
           </button>
