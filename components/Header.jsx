@@ -204,18 +204,16 @@ function UserDropdown({ user, setUser }) {
 export default function Header({ user: initialUser = null }) {
   const router = useRouter()
   const pathname = usePathname()
-  
   const [user, setUser] = useState(initialUser)
   const [mobileOpen, setMobileOpen] = useState(false)
-  
   const { scrollY } = useScroll()
 
   const isHome = pathname === '/'
 
   const clampedScroll = useTransform(scrollY, (value) => Math.max(0, value))
-  const animatedHeight = useTransform(clampedScroll, [0, 80], [130, 68])
-  const animatedLogo = useTransform(clampedScroll, [0, 80], [86, 36])
-  const animatedTitle = useTransform(clampedScroll, [0, 80], [52, 22])
+  const animatedHeight = useTransform(clampedScroll, [0, 80], [110, 68])
+  const animatedLogo = useTransform(clampedScroll, [0, 80], [64, 36])
+  const animatedTitle = useTransform(clampedScroll, [0, 80], [38, 25])
 
   useEffect(() => {
     const supabase = createClient()
@@ -248,7 +246,7 @@ export default function Header({ user: initialUser = null }) {
             </motion.div>
             <motion.span
               style={{ 
-                fontSize: isHome ? animatedTitle : 22, 
+                fontSize: isHome ? animatedTitle : 25, 
                 fontFamily: 'var(--font-cormorant), serif' 
               }}
               className="font-bold text-[#FAFAF7] leading-none"
@@ -257,8 +255,7 @@ export default function Header({ user: initialUser = null }) {
             </motion.span>
           </Link>
 
-          {/* Menu */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-5">
             <Link href="/listings" className="text-sm text-[#FAFAF7]/70 hover:text-[#FAFAF7] transition font-medium whitespace-nowrap">
               Find Services
             </Link>
@@ -269,17 +266,29 @@ export default function Header({ user: initialUser = null }) {
               Offer Skills
             </button>
 
+            <div className="w-px h-4 bg-[#FAFAF7]/15 mx-0.5" />
+
             <LanguageDropdown />
+
+            <div className="w-px h-4 bg-[#FAFAF7]/15 mx-0.5" />
 
             {user ? (
               <UserDropdown user={user} setUser={setUser} />
             ) : (
-              <button
-                onClick={() => router.push('/login')}
-                className="bg-[#C9963E] text-[#FAFAF7] text-sm px-5 py-2 rounded-full font-semibold hover:bg-[#b8852d] transition whitespace-nowrap"
-              >
-                Join Toro
-              </button>
+              <div className="flex items-center gap-5">
+                <button
+                  onClick={() => router.push('/login')}
+                  className="text-sm text-[#FAFAF7]/70 hover:text-[#FAFAF7] transition font-medium"
+                >
+                  Log in
+                </button>
+                <button
+                  onClick={() => router.push('/login?mode=signup')}
+                  className="bg-[#C9963E] text-[#FAFAF7] text-sm px-5 py-2 rounded-full font-semibold hover:bg-[#b8852d] transition whitespace-nowrap shadow-sm"
+                >
+                  Sign up
+                </button>
+              </div>
             )}
           </div>
 
@@ -299,7 +308,6 @@ export default function Header({ user: initialUser = null }) {
         </div>
       </motion.header>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
@@ -328,12 +336,18 @@ export default function Header({ user: initialUser = null }) {
               Offer Skills
             </button>
             {!user && (
-              <div className="pt-2 border-t border-[#FAFAF7]/10 mt-2">
+              <div className="pt-4 border-t border-[#FAFAF7]/10 mt-2 flex flex-col gap-3">
                 <button
                   onClick={() => { setMobileOpen(false); router.push('/login') }}
-                  className="w-full bg-[#C9963E] text-[#FAFAF7] py-3 rounded-full font-semibold hover:bg-[#b8852d] transition"
+                  className="w-full bg-[#C9963E] text-[#FAFAF7] py-3.5 rounded-full font-semibold hover:bg-[#b8852d] transition"
                 >
                   Join Toro
+                </button>
+                <button
+                   onClick={() => { setMobileOpen(false); router.push('/login') }}
+                   className="w-full text-center text-sm text-[#FAFAF7]/50 py-2"
+                >
+                  Already have an account? Log in
                 </button>
               </div>
             )}
