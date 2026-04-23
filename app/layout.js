@@ -1,5 +1,7 @@
 import { Cormorant_Garamond } from 'next/font/google'
 import './globals.css'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -13,9 +15,7 @@ export const metadata = {
     template: '%s · Toro'
   },
   icons: {
-    // Standard favicon for browsers
     icon: '/favicon.svg',
-    // Specifically for iPhone/iPad home screen
     apple: '/apple-touch-icon.svg',
   },
   description: 'Il marketplace degli studenti di Torino. Trova studenti per ripetizioni, pulizie, aiuto con documenti consolari e molto altro.',
@@ -54,8 +54,14 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="it" className={cormorant.variable}>
-      <body className="bg-[#FAFAF7] font-sans antialiased min-h-screen">
-        {children}
+      <body className="bg-[#FAFAF7] font-sans antialiased min-h-screen flex flex-col">
+        <Header />
+        
+        <main className="flex-grow">
+          {children}
+        </main>
+
+        <Footer />
       </body>
     </html>
   )

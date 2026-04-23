@@ -22,11 +22,9 @@ export default async function ProfilePage() {
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-[#FAFAF7]">
-      <Header user={user} />
       <main className="flex-grow">
         <ProfileClient user={user} initialProfile={profile} />
       </main>
-      <Footer />
     </div>
   )
 }

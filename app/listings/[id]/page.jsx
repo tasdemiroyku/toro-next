@@ -1,7 +1,5 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
 import ListingDetailClient from '@/components/ListingDetailClient'
 
 export async function generateMetadata({ params }) {
@@ -47,14 +45,12 @@ export default async function ListingDetailPage({ params }) {
 
   return (
     <div className="min-h-screen bg-[#FAFAF7] font-sans">
-      <Header user={user} />
       <ListingDetailClient
         listing={listing}
         profile={profile}
         user={user}
         isOwner={isOwner}
       />
-      <Footer />
     </div>
   )
 }

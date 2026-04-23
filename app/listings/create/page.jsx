@@ -3,8 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
 
 const CATEGORIES = [
   { value: "tutoring", label: "Tutoring" },
@@ -68,7 +66,6 @@ export default function CreateListing() {
 
   return (
     <div className="min-h-screen bg-[#FAFAF7] font-sans">
-      <Header />
 
       <div className="max-w-2xl mx-auto px-8 py-16 flex flex-col gap-8">
 
@@ -219,7 +216,6 @@ export default function CreateListing() {
 
       </div>
 
-      <Footer />
     </div>
   )
 }

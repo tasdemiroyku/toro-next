@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import Header from '@/components/Header'
 
 function ToretBull({ className = "" }) {
   return (
@@ -66,7 +65,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen font-sans">
-      <Header />
 
       <div className="relative min-h-[calc(100vh-68px)] flex items-center justify-center px-4 py-12">
 

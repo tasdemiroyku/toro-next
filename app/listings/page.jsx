@@ -1,6 +1,4 @@
 import { createClient } from '@/utils/supabase/server'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
 import ListingsClient from '@/components/ListingsClient'
 
 export const metadata = {
@@ -41,11 +39,9 @@ export default async function ListingsPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAF7] font-sans">
-      <Header user={user} />
       <main className="flex-grow max-w-6xl mx-auto px-8 py-12 w-full">
         <ListingsClient user={user} initialListings={listingsWithProfiles} />
       </main>
-      <Footer />
     </div>
   )
 }

@@ -1,10 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import Header from './Header'
-import Footer from './Footer'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -15,57 +13,8 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.15 } }
 }
 
-const categories = [
-  {
-    label: 'Tutoring',
-    desc: 'Uni subjects, language, exam prep',
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#132600" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-      </svg>
-    )
-  },
-  {
-    label: 'Cleaning',
-    desc: 'Home, studio, end of tenancy',
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#132600" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-        <polyline points="9 22 9 12 15 12 15 22"/>
-      </svg>
-    )
-  },
-  {
-    label: 'Consular Docs',
-    desc: 'Permits, translations, bureaucracy',
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#132600" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="16" y1="13" x2="8" y2="13"/>
-        <line x1="16" y1="17" x2="8" y2="17"/>
-      </svg>
-    )
-  },
-  {
-    label: 'Elderly Care',
-    desc: 'Companionship, errands, support',
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#132600" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-      </svg>
-    )
-  },
-]
-
-export default function HomeClient({ user, listings }) {
+export default function HomeClient({ listings }) {
   const router = useRouter()
-  const { scrollY } = useScroll()
-  const headerHeight = useTransform(scrollY, [0, 140], [140, 68])
-  const logoSize = useTransform(scrollY, [0, 140], [90, 40])
-  const titleSize = useTransform(scrollY, [0, 140], [58, 26])
-
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState('idle')
 
@@ -90,10 +39,9 @@ export default function HomeClient({ user, listings }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAF7] font-sans">
-      <Header shrink={true} user={user} />
-
+    <div className="bg-[#FAFAF7] font-sans">
       {/* Hero */}
+      {/* Şefin Notu: Eğer resim üstten Header'ın arkasına girsin istiyorsak buraya negatif margin (örn: -mt-20) ekleyebiliriz. Header'ı akıllı yapınca buna karar vereceğiz. */}
       <section className="relative h-[600px] flex items-center overflow-hidden">
         <img
           src="/torino.jpeg"
@@ -126,7 +74,7 @@ export default function HomeClient({ user, listings }) {
             <input
               type="text"
               autoFocus
-              placeholder="What are you looking for? (e.g., Math tutoring, cleaning...)"
+              placeholder="What are you looking for?"
               className="flex-1 bg-transparent outline-none text-white placeholder:text-white/80 text-base py-3 px-6 font-medium"
             />
             <button className="bg-[#132600] hover:bg-[#1f3d00] text-[#C9963E] rounded-full p-4 transition-colors duration-200 shadow-xl">
@@ -147,7 +95,6 @@ export default function HomeClient({ user, listings }) {
         viewport={{ once: true, amount: 0.1 }}
         variants={stagger}
       >
-        {/* Section Header and View All Button */}
         <div className="flex justify-between items-end mb-10">
           <motion.h2 variants={fadeUp} className="text-2xl font-bold text-[#132600]">
             Latest Active Services
@@ -161,7 +108,6 @@ export default function HomeClient({ user, listings }) {
           </motion.button>
         </div>
 
-        {/* Listings Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {listings?.length > 0 ? (
             listings.map((item) => (
@@ -171,7 +117,6 @@ export default function HomeClient({ user, listings }) {
                 className="flex flex-col bg-white border border-[#132600]/10 rounded-2xl overflow-hidden hover:border-[#C9963E] hover:shadow-lg transition cursor-pointer group"
                 onClick={() => router.push(`/listings/${item.id}`)}
               >
-                {/* Listing Top Header (Category Icon/Color) */}
                 <div className="h-28 bg-[#132600]/5 relative flex items-center justify-center">
                   <span className="text-4xl opacity-20">
                     {item.category === 'Tutoring' ? '📚' : item.category === 'Cleaning' ? '🧹' : '💼'}
@@ -181,14 +126,12 @@ export default function HomeClient({ user, listings }) {
                   </div>
                 </div>
                 
-                {/* Listing Details */}
                 <div className="p-5 flex flex-col gap-2">
                   <span className="text-xs font-semibold text-[#C9963E] uppercase tracking-wider">{item.category}</span>
                   <h3 className="text-[#132600] font-bold leading-tight group-hover:text-[#C9963E] transition-colors line-clamp-2 min-h-[40px]">
                     {item.title}
                   </h3>
                   
-                  {/* Listing Author (From profiles join) */}
                   <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#132600]/5">
                     <div className="w-6 h-6 rounded-full bg-[#132600]/10 flex items-center justify-center overflow-hidden">
                       {item.profiles?.avatar_url ? (
@@ -205,7 +148,6 @@ export default function HomeClient({ user, listings }) {
               </motion.div>
             ))
           ) : (
-            // Empty state if no listings exist
             <div className="col-span-full py-12 text-center text-[#132600]/40 italic">
               No active listings found. Be the first to offer a service!
             </div>
@@ -228,7 +170,7 @@ export default function HomeClient({ user, listings }) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               { title: 'Student verified', desc: 'Every listing is linked to a real university email from UniTO or Politecnico. No anonymity, just trust.' },
-              { title: 'Built for newcomers', desc: 'Multilingual platform. Whether you speak Italian, English, Turkish or Arabic — Toro works for you.' },
+              { title: 'Built for newcomers', desc: 'Multilingual platform. Whether you speak Italian, English or Turkish — Toro works for you.' },
               { title: 'Your first step', desc: 'Never worked before? No problem. Toro is designed to help students take their first professional step with confidence.' },
             ].map((item) => (
               <motion.div key={item.title} variants={fadeUp} className="flex flex-col gap-3">
@@ -285,8 +227,6 @@ export default function HomeClient({ user, listings }) {
           )}
         </motion.div>
       </motion.section>
-
-      <Footer />
     </div>
   )
 }

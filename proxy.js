@@ -1,20 +1,23 @@
 import { NextResponse } from 'next/server'
 import { updateSession } from './utils/supabase/proxy'
 
-const PROTECTED_ROUTES = ['/profile', '/listings/create']
+const PROTECTED_ROUTES = ['/profile', '/listings/create', '/listings/my']
 
 export async function proxy(request) {
   const { supabaseResponse, user } = await updateSession(request)
   const { pathname } = request.nextUrl
 
-  // Redirect to login if accessing protected route without auth
-  if (PROTECTED_ROUTES.some(route => pathname.startsWith(route)) && !user) {
+  const isDynamicProtected = /^\/listings\/[^/]+\/edit$/.test(pathname)
+
+  if (
+    (PROTECTED_ROUTES.some(route => pathname.startsWith(route)) || isDynamicProtected)
+    && !user
+  ) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  // Redirect to home if accessing login while already logged in
   if (pathname === '/login' && user) {
     return NextResponse.redirect(new URL('/', request.url))
   }
