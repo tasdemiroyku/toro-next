@@ -130,17 +130,26 @@ export default function LoginPage() {
           </div>
 
           {mode !== 'forgot' && (
-            <div className="flex flex-col gap-3 shrink-0">
-              <button onClick={() => handleOAuth('google')} type="button" className="flex items-center justify-center gap-3 border border-[#132600]/15 rounded-full py-3 px-6 text-sm font-medium text-[#132600] hover:bg-[#132600]/5 transition">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-4 h-4" alt="Google" />
-                Continue with Google
-              </button>
-              <button onClick={() => handleOAuth('linkedin_oidc')} type="button" className="flex items-center justify-center gap-3 border border-[#132600]/15 rounded-full py-3 px-6 text-sm font-medium text-[#132600] hover:bg-[#132600]/5 transition">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="#0A66C2">
-                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                </svg>
-                Continue with LinkedIn
-              </button>
+            <div className="flex flex-col gap-5 shrink-0">
+              <div className="flex flex-col gap-3">
+                <button onClick={() => handleOAuth('google')} type="button" className="flex items-center justify-center gap-3 border border-[#132600]/15 rounded-full py-3 px-6 text-sm font-medium text-[#132600] hover:bg-[#132600]/5 transition">
+                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-4 h-4" alt="Google" />
+                  Continue with Google
+                </button>
+                <button onClick={() => handleOAuth('linkedin_oidc')} type="button" className="flex items-center justify-center gap-3 border border-[#132600]/15 rounded-full py-3 px-6 text-sm font-medium text-[#132600] hover:bg-[#132600]/5 transition">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#0A66C2">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                  </svg>
+                  Continue with LinkedIn
+                </button>
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-4 px-2 my-2">
+                <div className="flex-1 h-px bg-[#132600]/10"></div>
+                <span className="text-[13px] font-medium text-[#132600]/40 lowercase">or</span>
+                <div className="flex-1 h-px bg-[#132600]/10"></div>
+              </div>
             </div>
           )}
 
