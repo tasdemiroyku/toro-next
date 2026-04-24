@@ -1,166 +1,220 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import ToretBull from '@/components/ToretBull'
+import ToroLoader from '@/components/ToroLoader'
 
 export default function LoginPage() {
   const router = useRouter()
-  
   const [mode, setMode] = useState('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
+  const [message, setMessage] = useState(null)
+  const [showPassword, setShowPassword] = useState(false)
+  const [cooldown, setCooldown] = useState(0)
 
-  const handleGoogle = async () => {
+  const emailRef = useRef(null)
+  const nameRef = useRef(null)
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('toro_saved_email')
+    if (savedEmail) {
+      setEmail(savedEmail)
+      setRememberMe(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    setMessage(null) 
+    if ((mode === 'login' || mode === 'forgot') && emailRef.current) {
+      emailRef.current.focus()
+    } else if (mode === 'signup' && nameRef.current) {
+      nameRef.current.focus()
+    }
+  }, [mode])
+
+  useEffect(() => {
+    let timer
+    if (cooldown > 0) {
+      timer = setInterval(() => setCooldown((prev) => prev - 1), 1000)
+    }
+    return () => clearInterval(timer)
+  }, [cooldown])
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0')
+    const s = (seconds % 60).toString().padStart(2, '0')
+    return `${m}:${s}`
+  }
+
+  const handleOAuth = async (provider) => {
     const supabase = createClient()
     await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`
-      }
+      provider,
+      options: { redirectTo: `${window.location.origin}/auth/callback` }
     })
   }
 
-  const handleSubmit = async () => {
-    if (!email || !password) return
+  const handleSubmit = async (e) => {
+    e?.preventDefault()
+    if (!email) return
+    if (mode !== 'forgot' && !password) return
+    if (mode === 'forgot' && cooldown > 0) return
+    
     setLoading(true)
-    setMessage('')
-
+    setMessage(null)
     const supabase = createClient()
 
-    if (mode === 'signup') {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { full_name: name } }
-      })
-      if (error) setMessage(error.message)
-      else setMessage("Check your email to confirm your account.")
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) {
-        setMessage(error.message)
-      } else {
+    try {
+      if (mode === 'signup') {
+        const { error } = await supabase.auth.signUp({
+          email, password, options: { data: { full_name: name } }
+        })
+        if (error) throw error
+        setMessage({ text: "Check your email to confirm your account.", type: "success" })
+      } 
+      else if (mode === 'forgot') {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        })
+        if (error) throw error 
+        setMessage({ text: "Reset link sent to your email.", type: "success" })
+        setCooldown(60)
+      } 
+      else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        if (error) throw error
+        if (rememberMe) localStorage.setItem('toro_saved_email', email)
+        else localStorage.removeItem('toro_saved_email')
         router.push('/')
         router.refresh()
       }
+    } catch (error) {
+      let errorText = error.message
+      if (errorText === 'Invalid login credentials') {
+        errorText = 'Incorrect email or password.'
+      } else if (errorText.includes('rate_limit') || errorText.includes('over_email_send_rate_limit')) {
+         errorText = 'Too many requests. Please try again later.'
+      }
+      setMessage({ text: errorText, type: "error" })
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-68px)] flex items-center justify-center px-4 py-12 font-sans overflow-hidden">
-
-      {/* Background Image */}
-      <img
-        src="/torino.jpeg"
-        alt="Torino"
-        className="absolute inset-0 w-full h-full object-cover"
-      />
+    <div className="relative h-[calc(100vh-68px)] flex items-center justify-center px-4 font-sans overflow-hidden">
+      <img src="/torino.jpeg" alt="Torino" className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0 bg-[#132600]/60 backdrop-blur-sm" />
 
-      {/* Card */}
-      <div className="relative z-10 bg-[#FAFAF7] rounded-[2rem] p-8 w-full max-w-[420px] flex flex-col gap-6 shadow-2xl border border-[#132600]/5">
+      <div className={`relative z-10 bg-[#FAFAF7] rounded-[2rem] w-full max-w-[440px] max-h-[95vh] shadow-2xl border border-[#132600]/5 scrollbar-hide ${loading ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+        
+        {loading && <ToroLoader text={mode === 'forgot' ? 'Sending' : 'Processing'} />}
 
-        {/* Logo + Title Section */}
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-14 h-14 bg-[#132600] rounded-2xl flex items-center justify-center p-2">
-            <ToretBull className="w-full h-full text-[#FAFAF7]" />
+        <div className="p-8 flex flex-col gap-6">
+          <div className="flex flex-col items-center gap-3 shrink-0">
+            <div className="w-14 h-14 bg-[#132600] rounded-2xl flex items-center justify-center p-2 shadow-lg">
+              <ToretBull className="w-full h-full text-[#FAFAF7]" />
+            </div>
+            <h1 className="text-3xl font-bold text-[#132600]" style={{ fontFamily: 'var(--font-cormorant), serif' }}>
+              {mode === 'login' ? 'Welcome back.' : mode === 'signup' ? 'Join Toro.' : 'Reset Password.'}
+            </h1>
+            <p className="text-sm text-[#132600]/50 text-center font-medium">
+              {mode === 'forgot' ? 'Enter your email to receive a reset link.' : 'Join the community.'}
+            </p>
           </div>
-          {/* Bold + Cormorant */}
-          <h1 
-            className="text-4xl font-bold text-[#132600]" 
-            style={{ fontFamily: 'var(--font-cormorant), serif' }}
-          >
-            {mode === 'login' ? 'Welcome back.' : 'Join Toro.'}
-          </h1>
-          <p className="text-sm text-[#132600]/50 text-center font-medium">
-            {mode === 'login'
-              ? 'Log in to find or offer services in Torino.'
-              : "Create your account — it's free."}
+
+          {mode !== 'forgot' && (
+            <div className="flex flex-col gap-3 shrink-0">
+              <button onClick={() => handleOAuth('google')} type="button" className="flex items-center justify-center gap-3 border border-[#132600]/15 rounded-full py-3 px-6 text-sm font-medium text-[#132600] hover:bg-[#132600]/5 transition">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-4 h-4" alt="Google" />
+                Continue with Google
+              </button>
+              <button onClick={() => handleOAuth('linkedin_oidc')} type="button" className="flex items-center justify-center gap-3 border border-[#132600]/15 rounded-full py-3 px-6 text-sm font-medium text-[#132600] hover:bg-[#132600]/5 transition">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#0A66C2">
+                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                </svg>
+                Continue with LinkedIn
+              </button>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6 shrink-0">
+            <div className="flex flex-col gap-3">
+              {mode === 'signup' && (
+                <input ref={nameRef} type="text" name="name" autoComplete="name" placeholder="Full name" value={name} onChange={e => setName(e.target.value)} className="border border-[#132600]/15 rounded-full px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white font-medium" />
+              )}
+              <input ref={emailRef} type="email" name="email" id="email" autoComplete={mode === 'login' ? 'username' : 'email'} placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="border border-[#132600]/15 rounded-full px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white font-medium" />
+              {mode !== 'forgot' && (
+                <div className="relative">
+                  <input type={showPassword ? "text" : "password"} name="password" id="password" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="w-full border border-[#132600]/15 rounded-full px-5 py-3 pr-12 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white font-medium" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#132600]/40 hover:text-[#132600] transition">
+                    {!showPassword ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {mode === 'login' && (
+              <div className="flex items-center justify-between px-2">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="w-4 h-4 rounded border-[#132600]/20 text-[#C9963E] focus:ring-[#C9963E] accent-[#C9963E] cursor-pointer" />
+                  <span className="text-xs text-[#132600]/50 group-hover:text-[#132600] transition">Remember me</span>
+                </label>
+                <button type="button" onClick={() => setMode('forgot')} className="text-xs text-[#C9963E] font-semibold hover:underline">Forgot password?</button>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-4">
+              {/* MESAJ YENİDEN BUTONUN ÜSTÜNE ALINDI */}
+              {message && (
+                <div className="flex items-center justify-center gap-2 px-2 text-center animate-in fade-in slide-in-from-top-1">
+                  {message.type === 'error' ? (
+                     <svg className="w-4 h-4 text-red-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                       <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+                     </svg>
+                  ) : (
+                     <svg className="w-4 h-4 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  )}
+                  <p className={`text-xs font-semibold leading-relaxed ${message.type === 'error' ? 'text-red-500' : 'text-emerald-600'}`}>
+                    {message.text}
+                  </p>
+                </div>
+              )}
+
+              {mode === 'forgot' && cooldown > 0 && (
+                <div className="flex justify-center px-2 -mb-1">
+                  <p className="text-xs font-medium text-[#132600]/50">
+                    You can resend in <span className="font-bold font-mono text-[#132600]/70 bg-[#132600]/5 px-1.5 py-0.5 rounded ml-0.5">{formatTime(cooldown)}</span>
+                  </p>
+                </div>
+              )}
+
+              <button type="submit" disabled={loading || (mode === 'forgot' && cooldown > 0)} className="w-full bg-[#132600] text-[#FAFAF7] rounded-full py-3.5 text-sm font-semibold transition shadow-lg disabled:opacity-40 hover:bg-[#1f3d00]">
+                {mode === 'login' ? 'Log in' : mode === 'signup' ? 'Create account' : 'Send Reset Link'}
+              </button>
+            </div>
+          </form>
+
+          <p className="text-xs text-center text-[#132600]/40 font-medium shrink-0">
+            {mode === 'forgot' ? (
+              <button onClick={() => setMode('login')} className="text-[#C9963E] font-bold hover:underline">Back to Login</button>
+            ) : mode === 'login' ? (
+              <>Don't have an account? <button onClick={() => setMode('signup')} className="text-[#C9963E] font-bold hover:underline">Sign up</button></>
+            ) : (
+              <>Already have an account? <button onClick={() => setMode('login')} className="text-[#C9963E] font-bold hover:underline">Log in</button></>
+            )}
           </p>
         </div>
-
-        {/* Google Authentication */}
-        <button
-          onClick={handleGoogle}
-          className="flex items-center justify-center gap-3 border border-[#132600]/15 rounded-full py-3 px-6 text-sm font-medium text-[#132600] hover:bg-[#132600]/5 transition"
-        >
-          <svg width="18" height="18" viewBox="0 0 18 18">
-            <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
-            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
-            <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
-            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
-          </svg>
-          Continue with Google
-        </button>
-
-        {/* Divider */}
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-[#132600]/10" />
-          <span className="text-xs text-[#132600]/30 font-medium">or</span>
-          <div className="flex-1 h-px bg-[#132600]/10" />
-        </div>
-
-        {/* Input Fields */}
-        <div className="flex flex-col gap-3">
-          {mode === 'signup' && (
-            <input
-              type="text"
-              placeholder="Full name"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="border border-[#132600]/15 rounded-full px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white font-medium"
-            />
-          )}
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-            className="border border-[#132600]/15 rounded-full px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white font-medium"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-            className="border border-[#132600]/15 rounded-full px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white font-medium"
-          />
-        </div>
-
-        {/* Submit Button */}
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="bg-[#132600] text-[#FAFAF7] rounded-full py-3.5 text-sm font-semibold hover:bg-[#1f3d00] transition disabled:opacity-60 shadow-sm"
-        >
-          {loading ? 'Processing...' : mode === 'login' ? 'Log in' : 'Create account'}
-        </button>
-
-        {/* Status Message */}
-        {message && (
-          <p className="text-xs text-center text-[#132600]/60 font-medium leading-relaxed">{message}</p>
-        )}
-
-        {/* Toggle between Login/Signup */}
-        <p className="text-xs text-center text-[#132600]/40 font-medium">
-          {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
-          <button
-            onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setMessage('') }}
-            className="text-[#C9963E] font-semibold hover:underline"
-          >
-            {mode === 'login' ? 'Sign up' : 'Log in'}
-          </button>
-        </p>
-
       </div>
     </div>
   )

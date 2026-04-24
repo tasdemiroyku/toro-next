@@ -103,7 +103,8 @@ function UserDropdown({ user, setUser }) {
     setOpen(false)
     const supabase = createClient()
     await supabase.auth.signOut()
-    window.location.href = '/'
+    router.push('/')
+    router.refresh()
   }
 
   return (
