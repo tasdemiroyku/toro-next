@@ -36,14 +36,12 @@ export default function ListingsClient({ user, initialListings }) {
         >
           Services in Torino
         </h1>
-        {user && (
-          <button
-            onClick={() => router.push('/listings/create')}
-            className="bg-[#C9963E] text-[#FAFAF7] px-6 py-2.5 rounded-full text-sm font-bold hover:bg-[#b8852d] transition shadow-sm shrink-0"
-          >
-            Post your service
-          </button>
-        )}
+        <button
+          onClick={() => router.push(user ? '/listings/create' : '/login')}
+          className="bg-[#C9963E] text-[#FAFAF7] px-6 py-2.5 rounded-full text-sm font-bold hover:bg-[#b8852d] transition shadow-sm shrink-0"
+        >
+          Post your service
+        </button>
       </div>
 
       {/* Category filters - pill shapes */}
@@ -68,7 +66,7 @@ export default function ListingsClient({ user, initialListings }) {
         <motion.div 
           initial={{ opacity: 0, y: 10 }} 
           animate={{ opacity: 1, y: 0 }} 
-          className="text-center py-20 px-6 flex flex-col items-center gap-6 border-2 border-dashed border-[#132600]/10 rounded-[3rem] bg-transparent"
+          className="text-center py-20 px-6 flex flex-col items-center gap-6 border border-[#132600]/10 rounded-[3rem] bg-transparent"
         >
           {/* Detailed bull icon */}
           <div className="w-16 h-16 text-[#132600]/15">
@@ -82,14 +80,13 @@ export default function ListingsClient({ user, initialListings }) {
             </p>
           </div>
 
-          {user && (
-            <button
-              onClick={() => router.push('/listings/create')}
-              className="bg-[#132600] text-[#FAFAF7] px-8 py-3 rounded-full text-sm font-bold hover:bg-[#1f3d00] transition shadow-lg"
-            >
-              Post your service
-            </button>
-          )}
+          {/* YENİ: Empty State butonu da her zaman görünür */}
+          <button
+            onClick={() => router.push(user ? '/listings/create' : '/login')}
+            className="bg-[#132600] text-[#FAFAF7] px-8 py-3 rounded-full text-sm font-bold hover:bg-[#1f3d00] transition shadow-lg"
+          >
+            Post your service
+          </button>
         </motion.div>
       ) : (
         <motion.div 

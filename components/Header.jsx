@@ -216,6 +216,10 @@ export default function Header({ user: initialUser = null }) {
   const animatedLogo = useTransform(clampedScroll, [0, 80], [64, 36])
   const animatedTitle = useTransform(clampedScroll, [0, 80], [38, 25])
 
+  const searchOpacity = useTransform(clampedScroll, [250, 350], [0, 1])
+  const searchY = useTransform(clampedScroll, [250, 350], [10, 0])
+  const searchPointerEvents = useTransform(clampedScroll, [0, 349, 350], ["none", "none", "auto"])
+
   useEffect(() => {
     const supabase = createClient()
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -234,7 +238,7 @@ export default function Header({ user: initialUser = null }) {
         style={{ height: isHome ? animatedHeight : 68 }}
         className="bg-[#132600] sticky top-0 z-50 w-full"
       >
-        <div className="max-w-6xl mx-auto px-6 h-full flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 h-full flex items-center justify-between gap-4">
 
           <Link href="/" className="flex items-center gap-3 shrink-0">
             <motion.div 
@@ -256,7 +260,26 @@ export default function Header({ user: initialUser = null }) {
             </motion.span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-5">
+          {isHome && (
+            <motion.div 
+              style={{ opacity: searchOpacity, y: searchY, pointerEvents: searchPointerEvents }}
+              className="flex-1 max-w-sm hidden md:flex items-center bg-[#FAFAF7]/10 backdrop-blur-md border border-[#FAFAF7]/20 rounded-full p-1 transition-all hover:bg-[#FAFAF7]/20 mx-auto"
+            >
+              <input 
+                type="text" 
+                placeholder="What are you looking for?" 
+                className="flex-1 bg-transparent outline-none text-[#FAFAF7] placeholder:text-[#FAFAF7]/60 text-sm py-1.5 px-4 font-medium"
+              />
+              <button className="bg-[#132600] hover:bg-[#1f3d00] text-[#C9963E] rounded-full p-2 transition-all shadow-md active:scale-95 shrink-0">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </button>
+            </motion.div>
+          )}
+
+          <div className="hidden md:flex items-center gap-5 shrink-0">
             <Link href="/listings" className="text-sm text-[#FAFAF7]/70 hover:text-[#FAFAF7] transition font-medium whitespace-nowrap">
               Find Services
             </Link>

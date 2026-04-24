@@ -98,7 +98,6 @@ export default function ResetPasswordPage() {
               Update Password
             </button>
 
-            {/* Mesaj Butonun Altında - Çarpı İkonu Düz */}
             {message && (
               <div className="flex items-center justify-center gap-2 px-2 text-center animate-in fade-in slide-in-from-top-1">
                 {message.type === 'error' ? (

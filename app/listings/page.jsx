@@ -11,36 +11,27 @@ export default async function ListingsPage() {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Fetch all active listings
-  const { data: listings } = await supabase
+  const { data: listings, error } = await supabase
     .from('listings')
-    .select('*')
+    .select(`
+      *,
+      profiles (
+        id,
+        full_name,
+        avatar_url
+      )
+    `)
     .eq('is_active', true)
     .order('created_at', { ascending: false })
 
-  // Fetch profiles for each listing
-  let listingsWithProfiles = []
-
-  if (listings && listings.length > 0) {
-    const userIds = [...new Set(listings.map(l => l.user_id))]
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, full_name, avatar_url')
-      .in('id', userIds)
-
-    const profileMap = {}
-    profiles?.forEach(p => { profileMap[p.id] = p })
-
-    listingsWithProfiles = listings.map(l => ({
-      ...l,
-      profiles: profileMap[l.user_id] || null
-    }))
+  if (error) {
+    console.error("İlanlar çekilirken hata:", error.message)
   }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAF7] font-sans">
       <main className="flex-grow max-w-6xl mx-auto px-8 py-12 w-full">
-        <ListingsClient user={user} initialListings={listingsWithProfiles} />
+        <ListingsClient user={user} initialListings={listings || []} />
       </main>
     </div>
   )

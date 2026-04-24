@@ -175,7 +175,6 @@ export default function LoginPage() {
             )}
 
             <div className="flex flex-col gap-4">
-              {/* MESAJ YENİDEN BUTONUN ÜSTÜNE ALINDI */}
               {message && (
                 <div className="flex items-center justify-center gap-2 px-2 text-center animate-in fade-in slide-in-from-top-1">
                   {message.type === 'error' ? (
