@@ -209,12 +209,13 @@ export default function Header({ user: initialUser = null }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [headerSearch, setHeaderSearch] = useState('')
   const isHome = pathname === '/'
+  const isAuthPage = pathname === '/login'
   const { scrollY } = useScroll()
 
   const clampedScroll = useTransform(scrollY, (value) => Math.max(0, value))
-  const animatedHeight = useTransform(clampedScroll, [0, 80], [110, 68])
+  const animatedHeight = useTransform(clampedScroll, [0, 80], [110, 72])
   const animatedLogo = useTransform(clampedScroll, [0, 80], [64, 36])
-  const animatedTitle = useTransform(clampedScroll, [0, 80], [38, 25])
+  const animatedTitle = useTransform(clampedScroll, [0, 80], [42, 28])
 
   const searchOpacity = useTransform(clampedScroll, [250, 350], [0, 1])
   const searchY = useTransform(clampedScroll, [250, 350], [10, 0])
@@ -246,8 +247,8 @@ export default function Header({ user: initialUser = null }) {
   return (
     <>
       <motion.header
-        style={{ height: isHome ? animatedHeight : 68 }}
-        className="bg-toro-dark sticky top-0 z-50 w-full"
+        style={{ height: isHome ? animatedHeight : 72 }}
+        className="bg-toro-dark sticky top-0 z-50 w-full shadow-[0_14px_22px_-10px_rgba(0,0,0,0.5)]"
       >
         <div className="max-w-6xl mx-auto px-6 h-full flex items-center justify-between gap-4">
 
@@ -262,7 +263,7 @@ export default function Header({ user: initialUser = null }) {
             </motion.div>
             <motion.span
               style={{
-                fontSize: isHome ? animatedTitle : 25,
+                fontSize: isHome ? animatedTitle : 28,
                 fontFamily: 'var(--font-cormorant), serif'
               }}
               className="font-bold text-toro-light leading-none"
@@ -296,7 +297,7 @@ export default function Header({ user: initialUser = null }) {
                 </svg>
               </button>
             </motion.form>
-          ) : (
+          ) : !isAuthPage ? (
             <motion.form
               onSubmit={handleHeaderSearch}
               className="flex-1 max-w-sm hidden md:flex items-center bg-toro-light/10 backdrop-blur-md border border-toro-light/20 rounded-full p-1 transition-all hover:bg-toro-light/20 mx-auto"
@@ -319,7 +320,7 @@ export default function Header({ user: initialUser = null }) {
                 </svg>
               </button>
             </motion.form>
-          )}
+          ) : null}
 
           <div className="hidden md:flex items-center gap-5 shrink-0">
             <Link href="/listings" className="text-sm text-toro-light/70 hover:text-toro-light transition font-medium whitespace-nowrap">
@@ -381,7 +382,7 @@ export default function Header({ user: initialUser = null }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-[68px] left-0 right-0 z-40 bg-toro-dark border-t border-toro-light/10 px-6 py-6 flex flex-col gap-4 md:hidden"
+            className="fixed top-[72px] left-0 right-0 z-40 bg-toro-dark border-t border-toro-light/10 px-6 py-6 flex flex-col gap-4 md:hidden"
           >
             <div className="flex items-center gap-4 pb-4 mb-2 border-b border-toro-light/10">
               <span className="text-xs text-toro-light/40 uppercase tracking-wider font-semibold">Language</span>

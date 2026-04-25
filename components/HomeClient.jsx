@@ -54,11 +54,17 @@ export default function HomeClient({ listings }) {
 
       {/* Hero */}
       <section className="relative h-[650px] flex items-center overflow-hidden">
-        <img
-          src="/torino.jpeg"
-          alt="Torino"
+        <video
           className="absolute inset-0 w-full h-full object-cover"
-        />
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+        >
+          <source src="/toret-video.mp4" type="video/mp4" />
+        </video>
         <div className="absolute inset-0 bg-toro-dark/65 backdrop-blur-[2px]" />
 
         <motion.div
@@ -69,10 +75,7 @@ export default function HomeClient({ listings }) {
         >
           {/* Title */}
           <motion.div variants={fadeUp} className="text-center mb-10 flex flex-col gap-4">
-            <h1
-              className="text-4xl md:text-6xl font-bold text-toro-light tracking-tight leading-tight"
-              style={{ fontFamily: 'var(--font-cormorant), serif' }}
-            >
+            <h1 className="text-4xl md:text-6xl font-bold text-toro-light tracking-tight leading-tight">
               Torino's Student Marketplace
             </h1>
             <p className="text-lg text-white/80 font-medium max-w-xl mx-auto">
@@ -117,7 +120,7 @@ export default function HomeClient({ listings }) {
         variants={stagger}
       >
         <div className="flex justify-between items-end mb-12">
-          <motion.h2 variants={fadeUp} className="text-3xl font-bold text-toro-dark" style={{ fontFamily: 'var(--font-cormorant), serif' }}>
+          <motion.h2 variants={fadeUp} className="text-3xl font-bold text-toro-dark">
             Latest Services
           </motion.h2>
           <motion.button
@@ -241,7 +244,6 @@ export default function HomeClient({ listings }) {
         <motion.h2
           variants={fadeUp}
           className="text-3xl font-bold text-toro-dark"
-          style={{ fontFamily: 'var(--font-cormorant), serif' }}
         >
           Be the first in Torino
         </motion.h2>

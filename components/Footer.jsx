@@ -46,7 +46,7 @@ export default function Footer() {
           <div className="flex items-center gap-3">
             <ToretBull className="w-8 h-8 text-toro-light opacity-90" />
             <span
-              className="text-xl font-bold text-toro-light"
+              className="text-2xl font-bold text-toro-light"
               style={{ fontFamily: 'var(--font-cormorant), serif' }}
             >
               Toro

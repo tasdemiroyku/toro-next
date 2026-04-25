@@ -32,10 +32,7 @@ export default function ListingsClient({ user, initialListings, searchQuery = ''
       {/* Top bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1
-            className="text-3xl font-bold text-toro-dark"
-            style={{ fontFamily: 'var(--font-cormorant), serif' }}
-          >
+          <h1 className="text-3xl font-bold text-toro-dark">
             Services in Torino
           </h1>
           {searchQuery && (

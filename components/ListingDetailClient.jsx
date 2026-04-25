@@ -85,10 +85,7 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
             <span className="text-xs font-semibold text-toro-gold uppercase tracking-wide">
               {CATEGORY_LABELS[listing.category] || listing.category}
             </span>
-            <h1
-              className="text-3xl font-bold text-toro-dark leading-tight"
-              style={{ fontFamily: 'var(--font-cormorant), serif' }}
-            >
+            <h1 className="text-3xl font-bold text-toro-dark leading-tight">
               {listing.title}
             </h1>
           </div>
