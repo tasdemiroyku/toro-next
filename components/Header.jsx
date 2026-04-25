@@ -208,9 +208,8 @@ export default function Header({ user: initialUser = null }) {
   const [user, setUser] = useState(initialUser)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [headerSearch, setHeaderSearch] = useState('')
-  const { scrollY } = useScroll()
-
   const isHome = pathname === '/'
+  const { scrollY } = useScroll()
 
   const clampedScroll = useTransform(scrollY, (value) => Math.max(0, value))
   const animatedHeight = useTransform(clampedScroll, [0, 80], [110, 68])
@@ -272,11 +271,34 @@ export default function Header({ user: initialUser = null }) {
             </motion.span>
           </Link>
 
-          {/* Sticky search — only visible on Home after scrolling past the hero */}
-          {isHome && (
+          {/* Sticky search — visible on every page, but hidden on the home hero until scroll */}
+          {isHome ? (
             <motion.form
               onSubmit={handleHeaderSearch}
               style={{ opacity: searchOpacity, y: searchY, pointerEvents: searchPointerEvents }}
+              className="flex-1 max-w-sm hidden md:flex items-center bg-toro-light/10 backdrop-blur-md border border-toro-light/20 rounded-full p-1 transition-all hover:bg-toro-light/20 mx-auto"
+            >
+              <input
+                type="text"
+                placeholder="What are you looking for?"
+                value={headerSearch}
+                onChange={e => setHeaderSearch(e.target.value)}
+                className="flex-1 bg-transparent outline-none text-toro-light placeholder:text-toro-light/60 text-sm py-1.5 px-4 font-medium"
+              />
+              <button
+                type="submit"
+                aria-label="Search"
+                className="bg-toro-dark hover:bg-[#1f3d00] text-toro-gold rounded-full p-2 transition-all shadow-md active:scale-95 shrink-0"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </button>
+            </motion.form>
+          ) : (
+            <motion.form
+              onSubmit={handleHeaderSearch}
               className="flex-1 max-w-sm hidden md:flex items-center bg-toro-light/10 backdrop-blur-md border border-toro-light/20 rounded-full p-1 transition-all hover:bg-toro-light/20 mx-auto"
             >
               <input
