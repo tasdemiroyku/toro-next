@@ -1,7 +1,5 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
 import ProfileClient from '@/components/ProfileClient'
 
 export const metadata = {
@@ -21,8 +19,8 @@ export default async function ProfilePage() {
     .single()
 
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-[#FAFAF7]">
-      <main className="flex-grow">
+    <div className="flex-grow bg-toro-light">
+      <main className="w-full">
         <ProfileClient user={user} initialProfile={profile} />
       </main>
     </div>

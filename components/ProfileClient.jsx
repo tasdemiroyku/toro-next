@@ -78,8 +78,7 @@ function memberSince(dateStr) {
 
 function VerifiedBadge() {
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs"
-      style={{ background: '#dcfce7', color: '#15803d' }}>
+    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs bg-green-100 text-green-700">
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M20 6 9 17l-5-5"/>
       </svg>
@@ -91,15 +90,15 @@ function VerifiedBadge() {
 function Field({ label, children, hint }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs text-[#132600]/50 tracking-wide">{label}</label>
+      <label className="text-xs text-toro-dark/50 tracking-wide">{label}</label>
       {children}
-      {hint && <p className="text-xs text-[#132600]/30">{hint}</p>}
+      {hint && <p className="text-xs text-toro-dark/30">{hint}</p>}
     </div>
   )
 }
 
 const inputClass =
-  'w-full bg-white border border-[#132600]/10 rounded-xl px-4 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E]/60 focus:ring-2 focus:ring-[#C9963E]/10 transition placeholder:text-[#132600]/25'
+  'w-full bg-white border border-toro-dark/10 rounded-xl px-4 py-3 text-sm text-toro-dark focus:outline-none focus:border-toro-gold/60 focus:ring-2 focus:ring-toro-gold/10 transition placeholder:text-toro-dark/25'
 
 function LanguageTagSelector({ selected, onChange }) {
   const [open, setOpen] = useState(false)
@@ -119,7 +118,6 @@ function LanguageTagSelector({ selected, onChange }) {
 
   return (
     <div className="flex flex-col gap-2" ref={ref}>
-      {/* Selected tags */}
       <div className="flex flex-wrap gap-1.5 min-h-[2.5rem]">
         <AnimatePresence>
           {selected.map(lang => (
@@ -129,8 +127,7 @@ function LanguageTagSelector({ selected, onChange }) {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.85 }}
               transition={{ duration: 0.15 }}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs"
-              style={{ background: '#132600', color: '#FAFAF7' }}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-toro-dark text-toro-light"
             >
               {lang}
               <button
@@ -147,7 +144,7 @@ function LanguageTagSelector({ selected, onChange }) {
         </AnimatePresence>
         <button
           onClick={() => setOpen(o => !o)}
-          className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs border border-dashed border-[#132600]/20 text-[#132600]/40 hover:border-[#C9963E]/60 hover:text-[#C9963E] transition"
+          className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs border border-dashed border-toro-dark/20 text-toro-dark/40 hover:border-toro-gold/60 hover:text-toro-gold transition"
         >
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -156,7 +153,6 @@ function LanguageTagSelector({ selected, onChange }) {
         </button>
       </div>
 
-      {/* Dropdown */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -164,7 +160,7 @@ function LanguageTagSelector({ selected, onChange }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="bg-white border border-[#132600]/10 rounded-2xl p-3 shadow-xl flex flex-wrap gap-1.5 z-20"
+            className="bg-white border border-toro-dark/10 rounded-2xl p-3 shadow-xl flex flex-wrap gap-1.5 z-20"
           >
             {LANGUAGE_OPTIONS.map(lang => (
               <button
@@ -172,10 +168,9 @@ function LanguageTagSelector({ selected, onChange }) {
                 onClick={() => toggle(lang)}
                 className={`px-3 py-1 rounded-full text-xs transition ${
                   selected.includes(lang)
-                    ? 'text-[#FAFAF7]'
-                    : 'text-[#132600]/60 hover:text-[#132600] border border-[#132600]/10 hover:border-[#132600]/30'
+                    ? 'bg-toro-dark text-toro-light'
+                    : 'text-toro-dark/60 hover:text-toro-dark border border-toro-dark/10 hover:border-toro-dark/30'
                 }`}
-                style={selected.includes(lang) ? { background: '#132600' } : {}}
               >
                 {lang}
               </button>
@@ -193,12 +188,9 @@ function Toast({ message, type = 'success' }) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
-      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full text-sm shadow-lg"
-      style={{
-        background: type === 'error' ? '#fee2e2' : '#dcfce7',
-        color: type === 'error' ? '#dc2626' : '#15803d',
-        border: `1px solid ${type === 'error' ? '#fca5a5' : '#86efac'}`,
-      }}
+      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full text-sm shadow-lg border ${
+        type === 'error' ? 'bg-red-100 text-red-600 border-red-300' : 'bg-green-100 text-green-700 border-green-300'
+      }`}
     >
       {message}
     </motion.div>
@@ -276,7 +268,7 @@ function PersonalSection({ user, profile, setProfile }) {
           placeholder="Tell other students what you can offer or what you're looking for..."
           className={`${inputClass} resize-none`}
         />
-        <p className="text-xs text-[#132600]/25 text-right -mt-1">
+        <p className="text-xs text-toro-dark/25 text-right -mt-1">
           {(profile?.bio || '').length}/300
         </p>
       </Field>
@@ -305,7 +297,7 @@ function PersonalSection({ user, profile, setProfile }) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex-1 sm:flex-none sm:min-w-[160px] bg-[#132600] text-[#FAFAF7] rounded-full px-6 py-3 text-sm transition hover:bg-[#1f3d00] active:scale-95 disabled:opacity-50"
+          className="flex-1 sm:flex-none sm:min-w-[160px] bg-toro-dark text-toro-light rounded-full px-6 py-3 text-sm transition hover:bg-[#1f3d00] active:scale-95 disabled:opacity-50"
         >
           {saving ? 'Saving…' : 'Save changes'}
         </button>
@@ -324,15 +316,15 @@ function PersonalSection({ user, profile, setProfile }) {
         {showDeleteModal && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#132600]/50 backdrop-blur-sm z-50 flex items-center justify-center px-4"
+            className="fixed inset-0 bg-toro-dark/50 backdrop-blur-sm z-50 flex items-center justify-center px-4"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#FAFAF7] rounded-3xl p-8 max-w-sm w-full flex flex-col gap-6 shadow-2xl"
+              className="bg-toro-light rounded-3xl p-8 max-w-sm w-full flex flex-col gap-6 shadow-2xl"
             >
               <div className="flex flex-col gap-2 text-center">
-                <h2 className="text-xl text-[#132600]">Delete account?</h2>
-                <p className="text-sm text-[#132600]/50 leading-relaxed">
+                <h2 className="text-xl text-toro-dark">Delete account?</h2>
+                <p className="text-sm text-toro-dark/50 leading-relaxed">
                   This is permanent. All your listings and messages will be removed.
                 </p>
               </div>
@@ -345,7 +337,7 @@ function PersonalSection({ user, profile, setProfile }) {
                 </button>
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="w-full border border-[#132600]/10 text-[#132600] rounded-full py-3 text-sm hover:bg-[#132600]/5 transition"
+                  className="w-full border border-toro-dark/10 text-toro-dark rounded-full py-3 text-sm hover:bg-toro-dark/5 transition"
                 >
                   Cancel
                 </button>
@@ -413,21 +405,19 @@ function AcademicSection({ user, profile, setProfile }) {
 
       {/* Email domain verification hint */}
       <div
-        className="rounded-2xl p-4 text-sm"
-        style={{
-          background: isVerifiedStudent(user?.email) ? '#f0fdf4' : '#fafaf7',
-          border: `1px solid ${isVerifiedStudent(user?.email) ? '#86efac' : '#132600'}18`,
-        }}
+        className={`rounded-2xl p-4 text-sm border ${
+          isVerifiedStudent(user?.email) ? 'bg-green-50 border-green-200' : 'bg-transparent border-toro-dark/10'
+        }`}
       >
         {isVerifiedStudent(user?.email) ? (
-          <div className="flex items-center gap-2 text-[#15803d]">
+          <div className="flex items-center gap-2 text-green-700">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 6 9 17l-5-5"/>
             </svg>
             Your email <span className="font-medium">{user?.email}</span> is automatically verified as a student address.
           </div>
         ) : (
-          <div className="flex items-start gap-2 text-[#132600]/50">
+          <div className="flex items-start gap-2 text-toro-dark/50">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0">
               <circle cx="12" cy="12" r="10"/>
               <line x1="12" y1="8" x2="12" y2="12"/>
@@ -444,7 +434,7 @@ function AcademicSection({ user, profile, setProfile }) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="bg-[#132600] text-[#FAFAF7] rounded-full px-6 py-3 text-sm transition hover:bg-[#1f3d00] active:scale-95 disabled:opacity-50 min-w-[160px]"
+          className="bg-toro-dark text-toro-light rounded-full px-6 py-3 text-sm transition hover:bg-[#1f3d00] active:scale-95 disabled:opacity-50 min-w-[160px]"
         >
           {saving ? 'Saving…' : 'Save changes'}
         </button>
@@ -498,20 +488,19 @@ function SecuritySection({ user }) {
   return (
     <div className="flex flex-col gap-8">
       {/* Current email info */}
-      <div className="rounded-2xl p-4 text-sm flex items-center gap-3"
-        style={{ background: '#f8f8f5', border: '1px solid #13260010' }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#132600" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="opacity-40 shrink-0">
+      <div className="rounded-2xl p-4 text-sm flex items-center gap-3 bg-toro-dark/5 border border-toro-dark/10">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-toro-dark/40 shrink-0">
           <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
           <polyline points="22,6 12,13 2,6"/>
         </svg>
-        <span className="text-[#132600]/50">Current email: <span className="text-[#132600]">{user?.email}</span></span>
+        <span className="text-toro-dark/50">Current email: <span className="text-toro-dark">{user?.email}</span></span>
       </div>
 
       {/* Update email */}
       <div className="flex flex-col gap-5">
         <div>
-          <h3 className="text-sm text-[#132600] mb-0.5">Update email</h3>
-          <p className="text-xs text-[#132600]/40">You'll receive a confirmation at both your old and new address.</p>
+          <h3 className="text-sm text-toro-dark mb-0.5">Update email</h3>
+          <p className="text-xs text-toro-dark/40">You'll receive a confirmation at both your old and new address.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="New email">
@@ -536,19 +525,19 @@ function SecuritySection({ user }) {
         <button
           onClick={handleEmailUpdate}
           disabled={emailLoading}
-          className="self-start bg-[#132600] text-[#FAFAF7] rounded-full px-6 py-3 text-sm transition hover:bg-[#1f3d00] active:scale-95 disabled:opacity-50 min-w-[160px]"
+          className="self-start bg-toro-dark text-toro-light rounded-full px-6 py-3 text-sm transition hover:bg-[#1f3d00] active:scale-95 disabled:opacity-50 min-w-[160px]"
         >
           {emailLoading ? 'Sending…' : 'Update email'}
         </button>
       </div>
 
-      <div className="border-t border-[#132600]/8" />
+      <div className="border-t border-toro-dark/10" />
 
       {/* Update password */}
       <div className="flex flex-col gap-5">
         <div>
-          <h3 className="text-sm text-[#132600] mb-0.5">Update password</h3>
-          <p className="text-xs text-[#132600]/40">Min 8 characters. Use uppercase, lowercase, a number and a symbol.</p>
+          <h3 className="text-sm text-toro-dark mb-0.5">Update password</h3>
+          <p className="text-xs text-toro-dark/40">Min 8 characters. Use uppercase, lowercase, a number and a symbol.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="New password">
@@ -577,7 +566,7 @@ function SecuritySection({ user }) {
         <button
           onClick={handlePasswordUpdate}
           disabled={passwordLoading}
-          className="self-start bg-[#132600] text-[#FAFAF7] rounded-full px-6 py-3 text-sm transition hover:bg-[#1f3d00] active:scale-95 disabled:opacity-50 min-w-[160px]"
+          className="self-start bg-toro-dark text-toro-light rounded-full px-6 py-3 text-sm transition hover:bg-[#1f3d00] active:scale-95 disabled:opacity-50 min-w-[160px]"
         >
           {passwordLoading ? 'Updating…' : 'Update password'}
         </button>
@@ -606,12 +595,12 @@ function PasswordStrength({ password }) {
           <motion.div
             key={i}
             className="h-1 flex-1 rounded-full"
-            animate={{ background: i < score ? colors[score - 1] : '#13260015' }}
+            animate={{ background: i < score ? colors[score - 1] : 'rgba(19, 38, 0, 0.08)' }}
             transition={{ duration: 0.3 }}
           />
         ))}
       </div>
-      <span className="text-xs" style={{ color: score > 0 ? colors[score - 1] : '#132600' + '40' }}>
+      <span className="text-xs" style={{ color: score > 0 ? colors[score - 1] : 'rgba(19, 38, 0, 0.4)' }}>
         {score > 0 ? labels[score - 1] : ''}
       </span>
     </div>
@@ -646,14 +635,12 @@ export default function ProfileClient({ user, initialProfile }) {
       <div className="flex flex-col sm:flex-row items-center sm:items-center gap-5 mb-10">
         <div className="relative shrink-0">
           <div
-            className="w-20 h-20 rounded-full flex items-center justify-center text-[#FAFAF7] text-2xl shadow-lg"
-            style={{ background: '#132600' }}
+            className="w-20 h-20 rounded-full flex items-center justify-center text-toro-light text-2xl shadow-lg bg-toro-dark"
           >
             {initials}
           </div>
           <div
-            className="absolute bottom-0 right-0 w-7 h-7 rounded-full border-2 border-white flex items-center justify-center shadow"
-            style={{ background: '#C9963E' }}
+            className="absolute bottom-0 right-0 w-7 h-7 rounded-full border-2 border-white flex items-center justify-center shadow bg-toro-gold"
           >
             <ToretBull className="w-3.5 h-3.5" />
           </div>
@@ -661,14 +648,14 @@ export default function ProfileClient({ user, initialProfile }) {
 
         <div className="flex flex-col items-center sm:items-start gap-1.5">
           <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
-            <h1 className="text-2xl text-[#132600]">
+            <h1 className="text-2xl text-toro-dark">
               {profile?.full_name || 'My Profile'}
             </h1>
             {verified && <VerifiedBadge />}
           </div>
-          <p className="text-sm text-[#132600]/40">{user?.email}</p>
+          <p className="text-sm text-toro-dark/40">{user?.email}</p>
           {user?.created_at && (
-            <p className="text-xs text-[#132600]/30">
+            <p className="text-xs text-toro-dark/30">
               Member since {memberSince(user.created_at)}
             </p>
           )}
@@ -684,13 +671,11 @@ export default function ProfileClient({ user, initialProfile }) {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all text-left"
-              style={{
-                background: activeTab === item.id ? '#132600' : 'transparent',
-                color: activeTab === item.id ? '#FAFAF7' : '#13260055',
-              }}
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all text-left ${
+                activeTab === item.id ? 'bg-toro-dark text-toro-light' : 'bg-transparent text-toro-dark/50'
+              }`}
             >
-              <span style={{ opacity: activeTab === item.id ? 1 : 0.6 }}>{item.icon}</span>
+              <span className={activeTab === item.id ? 'opacity-100' : 'opacity-60'}>{item.icon}</span>
               {item.label}
             </button>
           ))}
@@ -702,11 +687,9 @@ export default function ProfileClient({ user, initialProfile }) {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className="flex items-center gap-2 px-4 py-2 rounded-full text-xs whitespace-nowrap shrink-0 transition-all"
-              style={{
-                background: activeTab === item.id ? '#132600' : '#13260009',
-                color: activeTab === item.id ? '#FAFAF7' : '#13260060',
-              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs whitespace-nowrap shrink-0 transition-all ${
+                activeTab === item.id ? 'bg-toro-dark text-toro-light' : 'bg-toro-dark/5 text-toro-dark/60'
+              }`}
             >
               {item.icon}
               {item.label}
@@ -717,16 +700,15 @@ export default function ProfileClient({ user, initialProfile }) {
         {/* Content panel */}
         <div className="flex-1 min-w-0">
           <div
-            className="rounded-3xl p-6 sm:p-8"
+            className="rounded-3xl p-6 sm:p-8 border border-toro-dark/10"
             style={{
               background: 'rgba(255,255,255,0.45)',
               backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              border: '1px solid rgba(19,38,0,0.08)',
+              WebkitBackdropFilter: 'blur(12px)'
             }}
           >
             {/* Section header */}
-            <h2 className="text-xs text-[#C9963E] uppercase tracking-[0.18em] mb-6">
+            <h2 className="text-xs text-toro-gold uppercase tracking-[0.18em] mb-6">
               {NAV_ITEMS.find(n => n.id === activeTab)?.label}
             </h2>
 

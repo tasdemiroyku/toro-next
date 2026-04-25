@@ -75,26 +75,26 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
           {/* Back */}
           <button
             onClick={() => router.push('/listings')}
-            className="text-sm text-[#132600]/40 hover:text-[#132600] transition flex items-center gap-1 w-fit"
+            className="text-sm text-toro-dark/40 hover:text-toro-dark transition flex items-center gap-1 w-fit"
           >
             ← Back to listings
           </button>
 
           {/* Category + title */}
           <div className="flex flex-col gap-2">
-            <span className="text-xs font-semibold text-[#C9963E] uppercase tracking-wide">
+            <span className="text-xs font-semibold text-toro-gold uppercase tracking-wide">
               {CATEGORY_LABELS[listing.category] || listing.category}
             </span>
             <h1
-              className="text-3xl font-bold text-[#132600] leading-tight"
-              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+              className="text-3xl font-bold text-toro-dark leading-tight"
+              style={{ fontFamily: 'var(--font-cormorant), serif' }}
             >
               {listing.title}
             </h1>
           </div>
 
           {/* Meta row */}
-          <div className="flex flex-wrap gap-4 text-sm text-[#132600]/50">
+          <div className="flex flex-wrap gap-4 text-sm text-toro-dark/50">
             {listing.location && <span>📍 {listing.location}</span>}
             {listing.languages?.length > 0 && (
               <span>🗣 {listing.languages.join(', ')}</span>
@@ -107,25 +107,25 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
           </div>
 
           {/* Description */}
-          <div className="bg-white border border-[#132600]/10 rounded-2xl p-6">
-            <h2 className="text-sm font-semibold text-[#132600]/50 uppercase tracking-wide mb-3">
+          <div className="bg-white border border-toro-dark/10 rounded-2xl p-6">
+            <h2 className="text-sm font-semibold text-toro-dark/50 uppercase tracking-wide mb-3">
               About this service
             </h2>
-            <p className="text-sm text-[#132600]/80 leading-relaxed whitespace-pre-line">
+            <p className="text-sm text-toro-dark/80 leading-relaxed whitespace-pre-line">
               {listing.description}
             </p>
           </div>
 
           {/* Owner controls */}
           {isOwner && (
-            <div className="bg-[#132600]/5 rounded-2xl p-4 flex flex-col gap-3">
-              <p className="text-xs font-semibold text-[#132600]/50 uppercase tracking-wide">
+            <div className="bg-toro-dark/5 rounded-2xl p-4 flex flex-col gap-3">
+              <p className="text-xs font-semibold text-toro-dark/50 uppercase tracking-wide">
                 Your listing
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={handleToggleActive}
-                  className="flex-1 border border-[#132600]/15 text-[#132600] rounded-full py-2 text-sm font-semibold hover:bg-white transition"
+                  className="flex-1 border border-toro-dark/15 text-toro-dark rounded-full py-2 text-sm font-semibold hover:bg-white transition"
                 >
                   {listing.is_active ? 'Pause listing' : 'Activate listing'}
                 </button>
@@ -145,16 +145,16 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
         <div className="flex flex-col gap-4">
 
           {/* Price card */}
-          <div className="bg-white border border-[#132600]/10 rounded-2xl p-5 flex flex-col gap-4">
+          <div className="bg-white border border-toro-dark/10 rounded-2xl p-5 flex flex-col gap-4">
             <div>
-              <span className="text-3xl font-bold text-[#132600]">€{listing.price}</span>
-              <span className="text-sm text-[#132600]/40 ml-1">/ {listing.price_type}</span>
+              <span className="text-3xl font-bold text-toro-dark">€{listing.price}</span>
+              <span className="text-sm text-toro-dark/40 ml-1">/ {listing.price_type}</span>
             </div>
 
             {!isOwner && (
               <>
                 {messageSent ? (
-                  <div className="bg-[#132600]/5 rounded-xl p-4 text-sm text-[#132600] text-center">
+                  <div className="bg-toro-dark/5 rounded-xl p-4 text-sm text-toro-dark text-center">
                     Message sent. The provider will get back to you.
                   </div>
                 ) : (
@@ -168,12 +168,12 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
                       value={message}
                       onChange={e => setMessage(e.target.value)}
                       disabled={!user}
-                      className="w-full border border-[#132600]/15 rounded-xl px-4 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-[#FAFAF7] resize-none disabled:opacity-50"
+                      className="w-full border border-toro-dark/15 rounded-xl px-4 py-3 text-sm text-toro-dark focus:outline-none focus:border-toro-gold transition bg-toro-light resize-none disabled:opacity-50"
                     />
                     <button
                       onClick={() => !user ? router.push('/login') : handleContact()}
                       disabled={sending}
-                      className="w-full bg-[#132600] text-[#FAFAF7] rounded-full py-3 text-sm font-semibold hover:bg-[#1f3d00] transition disabled:opacity-60"
+                      className="w-full bg-toro-dark text-toro-light rounded-full py-3 text-sm font-semibold hover:bg-[#1f3d00] transition disabled:opacity-60"
                     >
                       {!user ? 'Log in to contact' : sending ? 'Sending...' : 'Send message'}
                     </button>
@@ -184,8 +184,8 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
           </div>
 
           {/* Provider card */}
-          <div className="bg-white border border-[#132600]/10 rounded-2xl p-5 flex flex-col gap-3">
-            <p className="text-xs font-semibold text-[#132600]/50 uppercase tracking-wide">
+          <div className="bg-white border border-toro-dark/10 rounded-2xl p-5 flex flex-col gap-3">
+            <p className="text-xs font-semibold text-toro-dark/50 uppercase tracking-wide">
               Provider
             </p>
             <div className="flex items-center gap-3">
@@ -196,28 +196,28 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
                   alt=""
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-[#132600] flex items-center justify-center text-[#FAFAF7] font-bold">
+                <div className="w-10 h-10 rounded-full bg-toro-dark flex items-center justify-center text-toro-light font-bold">
                   {profile?.full_name?.[0] || '?'}
                 </div>
               )}
               <div>
-                <p className="text-sm font-semibold text-[#132600]">
+                <p className="text-sm font-semibold text-toro-dark">
                   {profile?.full_name || 'Anonymous'}
                 </p>
                 {profile?.location && (
-                  <p className="text-xs text-[#132600]/40">{profile.location}</p>
+                  <p className="text-xs text-toro-dark/40">{profile.location}</p>
                 )}
               </div>
             </div>
             {profile?.bio && (
-              <p className="text-xs text-[#132600]/60 leading-relaxed">{profile.bio}</p>
+              <p className="text-xs text-toro-dark/60 leading-relaxed">{profile.bio}</p>
             )}
             {profile?.languages?.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {profile.languages.map(lang => (
                   <span
                     key={lang}
-                    className="text-xs bg-[#132600]/5 text-[#132600]/60 px-2 py-1 rounded-full"
+                    className="text-xs bg-toro-dark/5 text-toro-dark/60 px-2 py-1 rounded-full"
                   >
                     {lang}
                   </span>
@@ -232,17 +232,17 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
       {/* Delete modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">
-          <div className="bg-[#FAFAF7] rounded-3xl p-8 max-w-sm w-full flex flex-col gap-5 shadow-xl">
+          <div className="bg-toro-light rounded-3xl p-8 max-w-sm w-full flex flex-col gap-5 shadow-xl">
             <div className="flex flex-col gap-2">
-              <h2 className="text-lg font-bold text-[#132600]">Delete this listing?</h2>
-              <p className="text-sm text-[#132600]/60 leading-relaxed">
+              <h2 className="text-lg font-bold text-toro-dark">Delete this listing?</h2>
+              <p className="text-sm text-toro-dark/60 leading-relaxed">
                 This will permanently remove your listing. People won't be able to find it anymore.
               </p>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="flex-1 border border-[#132600]/15 text-[#132600] rounded-full py-2.5 text-sm font-semibold hover:bg-[#132600]/5 transition"
+                className="flex-1 border border-toro-dark/15 text-toro-dark rounded-full py-2.5 text-sm font-semibold hover:bg-toro-dark/5 transition"
               >
                 Cancel
               </button>

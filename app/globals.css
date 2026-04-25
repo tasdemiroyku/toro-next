@@ -1,5 +1,55 @@
+/* app/globals.css */
 @import "tailwindcss";
 
-button {
-  cursor: pointer;
+@theme {
+  --color-toro-dark: #132600;
+  --color-toro-gold: #C9963E;
+  --color-toro-light: #FAFAF7;
+
+  --font-cormorant: var(--font-cormorant), serif;
+}
+
+/* BASE */
+@layer base {
+  body {
+    background-color: var(--color-toro-light);
+    color: var(--color-toro-dark);
+    @apply antialiased font-sans flex flex-col min-h-screen;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-cormorant);
+  }
+  
+  button {
+    cursor: pointer;
+  }
+}
+
+/* COMPONENTS */
+@layer components {
+  
+  .toro-card {
+    @apply bg-white border border-toro-dark/10 rounded-[2rem] shadow-sm;
+  }
+  
+  .toro-input {
+    @apply w-full border border-toro-dark/15 rounded-full px-5 py-3 text-sm text-toro-dark bg-white font-medium transition placeholder:text-toro-dark/40 focus:outline-none focus:border-toro-gold focus:ring-1 focus:ring-toro-gold/30;
+  }
+
+  .toro-btn-primary {
+    @apply bg-toro-dark text-toro-light rounded-full py-3.5 px-6 text-sm font-semibold shadow-lg transition hover:bg-[#1f3d00] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 flex items-center justify-center gap-2;
+  }
+  
+  .toro-btn-gold {
+    @apply bg-toro-gold text-toro-light rounded-full py-3.5 px-6 text-sm font-bold shadow-md transition hover:bg-[#b8852d] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 flex items-center justify-center gap-2;
+  }
+  
+  .toro-btn-outline {
+    @apply border border-toro-dark/15 text-toro-dark bg-transparent rounded-full py-3.5 px-6 text-sm font-semibold transition hover:bg-toro-dark/5 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2;
+  }
+
+  .toro-empty-state {
+    @apply text-center py-20 px-6 flex flex-col items-center gap-6 border border-toro-dark/10 rounded-[3rem] bg-transparent;
+  }
 }

@@ -108,23 +108,23 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative h-[calc(100vh-68px)] flex items-center justify-center px-4 font-sans overflow-hidden">
+    <div className="relative h-[calc(100vh-68px)] flex items-center justify-center px-4 overflow-hidden">
       <img src="/torino.jpeg" alt="Torino" className="absolute inset-0 w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-[#132600]/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-toro-dark/60 backdrop-blur-sm" />
 
-      <div className={`relative z-10 bg-[#FAFAF7] rounded-[2rem] w-full max-w-[440px] max-h-[95vh] shadow-2xl border border-[#132600]/5 scrollbar-hide ${loading ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+      <div className={`relative z-10 bg-toro-light rounded-[2rem] w-full max-w-[410px] max-h-[95vh] shadow-2xl border border-toro-dark/5 scrollbar-hide ${loading ? 'overflow-hidden' : 'overflow-y-auto'}`}>
         
         {loading && <ToroLoader text={mode === 'forgot' ? 'Sending' : 'Processing'} />}
 
         <div className="p-8 flex flex-col gap-6">
           <div className="flex flex-col items-center gap-3 shrink-0">
-            <div className="w-14 h-14 bg-[#132600] rounded-2xl flex items-center justify-center p-2 shadow-lg">
-              <ToretBull className="w-full h-full text-[#FAFAF7]" />
+            <div className="w-14 h-14 bg-toro-dark rounded-2xl flex items-center justify-center p-2 shadow-lg">
+              <ToretBull className="w-full h-full text-toro-light" />
             </div>
-            <h1 className="text-3xl font-bold text-[#132600]" style={{ fontFamily: 'var(--font-cormorant), serif' }}>
+            <h1 className="text-3xl font-bold text-toro-dark">
               {mode === 'login' ? 'Welcome back.' : mode === 'signup' ? 'Join Toro.' : 'Reset Password.'}
             </h1>
-            <p className="text-sm text-[#132600]/50 text-center font-medium">
+            <p className="text-sm text-toro-dark/50 text-center font-medium">
               {mode === 'forgot' ? 'Enter your email to receive a reset link.' : 'Join the community.'}
             </p>
           </div>
@@ -132,11 +132,11 @@ export default function LoginPage() {
           {mode !== 'forgot' && (
             <div className="flex flex-col gap-5 shrink-0">
               <div className="flex flex-col gap-3">
-                <button onClick={() => handleOAuth('google')} type="button" className="flex items-center justify-center gap-3 border border-[#132600]/15 rounded-full py-3 px-6 text-sm font-medium text-[#132600] hover:bg-[#132600]/5 transition">
+                <button onClick={() => handleOAuth('google')} type="button" className="toro-btn-outline w-full">
                   <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-4 h-4" alt="Google" />
                   Continue with Google
                 </button>
-                <button onClick={() => handleOAuth('linkedin_oidc')} type="button" className="flex items-center justify-center gap-3 border border-[#132600]/15 rounded-full py-3 px-6 text-sm font-medium text-[#132600] hover:bg-[#132600]/5 transition">
+                <button onClick={() => handleOAuth('linkedin_oidc')} type="button" className="toro-btn-outline w-full">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="#0A66C2">
                     <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
                   </svg>
@@ -144,11 +144,10 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              {/* Divider */}
-              <div className="flex items-center gap-4 px-2 my-2">
-                <div className="flex-1 h-px bg-[#132600]/10"></div>
-                <span className="text-[13px] font-medium text-[#132600]/40 lowercase">or</span>
-                <div className="flex-1 h-px bg-[#132600]/10"></div>
+              <div className="flex items-center gap-4 px-2 my-0">
+                <div className="flex-1 h-px bg-toro-dark/10"></div>
+                <span className="text-[13px] font-medium text-toro-dark/40 lowercase">or</span>
+                <div className="flex-1 h-px bg-toro-dark/10"></div>
               </div>
             </div>
           )}
@@ -156,13 +155,13 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-6 shrink-0">
             <div className="flex flex-col gap-3">
               {mode === 'signup' && (
-                <input ref={nameRef} type="text" name="name" autoComplete="name" placeholder="Full name" value={name} onChange={e => setName(e.target.value)} className="border border-[#132600]/15 rounded-full px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white font-medium" />
+                <input ref={nameRef} type="text" name="name" autoComplete="name" placeholder="Full name" value={name} onChange={e => setName(e.target.value)} className="toro-input" />
               )}
-              <input ref={emailRef} type="email" name="email" id="email" autoComplete={mode === 'login' ? 'username' : 'email'} placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="border border-[#132600]/15 rounded-full px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white font-medium" />
+              <input ref={emailRef} type="email" name="email" id="email" autoComplete={mode === 'login' ? 'username' : 'email'} placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="toro-input" />
               {mode !== 'forgot' && (
                 <div className="relative">
-                  <input type={showPassword ? "text" : "password"} name="password" id="password" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="w-full border border-[#132600]/15 rounded-full px-5 py-3 pr-12 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white font-medium" />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#132600]/40 hover:text-[#132600] transition">
+                  <input type={showPassword ? "text" : "password"} name="password" id="password" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="toro-input pr-12" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-toro-dark/40 hover:text-toro-dark transition">
                     {!showPassword ? (
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
                     ) : (
@@ -176,10 +175,10 @@ export default function LoginPage() {
             {mode === 'login' && (
               <div className="flex items-center justify-between px-2">
                 <label className="flex items-center gap-2 cursor-pointer group">
-                  <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="w-4 h-4 rounded border-[#132600]/20 text-[#C9963E] focus:ring-[#C9963E] accent-[#C9963E] cursor-pointer" />
-                  <span className="text-xs text-[#132600]/50 group-hover:text-[#132600] transition">Remember me</span>
+                  <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="w-4 h-4 rounded border-toro-dark/20 text-toro-gold focus:ring-toro-gold accent-toro-gold cursor-pointer" />
+                  <span className="text-xs text-toro-dark/50 group-hover:text-toro-dark transition">Remember me</span>
                 </label>
-                <button type="button" onClick={() => setMode('forgot')} className="text-xs text-[#C9963E] font-semibold hover:underline">Forgot password?</button>
+                <button type="button" onClick={() => setMode('forgot')} className="text-xs text-toro-gold font-semibold hover:underline">Forgot password?</button>
               </div>
             )}
 
@@ -201,25 +200,25 @@ export default function LoginPage() {
 
               {mode === 'forgot' && cooldown > 0 && (
                 <div className="flex justify-center px-2 -mb-1">
-                  <p className="text-xs font-medium text-[#132600]/50">
-                    You can resend in <span className="font-bold font-mono text-[#132600]/70 bg-[#132600]/5 px-1.5 py-0.5 rounded ml-0.5">{formatTime(cooldown)}</span>
+                  <p className="text-xs font-medium text-toro-dark/50">
+                    You can resend in <span className="font-bold font-mono text-toro-dark/70 bg-toro-dark/5 px-1.5 py-0.5 rounded ml-0.5">{formatTime(cooldown)}</span>
                   </p>
                 </div>
               )}
 
-              <button type="submit" disabled={loading || (mode === 'forgot' && cooldown > 0)} className="w-full bg-[#132600] text-[#FAFAF7] rounded-full py-3.5 text-sm font-semibold transition shadow-lg disabled:opacity-40 hover:bg-[#1f3d00]">
+              <button type="submit" disabled={loading || (mode === 'forgot' && cooldown > 0)} className="w-full toro-btn-primary">
                 {mode === 'login' ? 'Log in' : mode === 'signup' ? 'Create account' : 'Send Reset Link'}
               </button>
             </div>
           </form>
 
-          <p className="text-xs text-center text-[#132600]/40 font-medium shrink-0">
+          <p className="text-xs text-center text-toro-dark/40 font-medium shrink-0">
             {mode === 'forgot' ? (
-              <button onClick={() => setMode('login')} className="text-[#C9963E] font-bold hover:underline">Back to Login</button>
+              <button onClick={() => setMode('login')} className="text-toro-gold font-bold hover:underline">Back to Login</button>
             ) : mode === 'login' ? (
-              <>Don't have an account? <button onClick={() => setMode('signup')} className="text-[#C9963E] font-bold hover:underline">Sign up</button></>
+              <>Don't have an account? <button onClick={() => setMode('signup')} className="text-toro-gold font-bold hover:underline">Sign up</button></>
             ) : (
-              <>Already have an account? <button onClick={() => setMode('login')} className="text-[#C9963E] font-bold hover:underline">Log in</button></>
+              <>Already have an account? <button onClick={() => setMode('login')} className="text-toro-gold font-bold hover:underline">Log in</button></>
             )}
           </p>
         </div>

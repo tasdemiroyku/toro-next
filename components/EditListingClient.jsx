@@ -77,9 +77,9 @@ export default function EditListingClient({ listing }) {
   }
 
   return (
-    <main className="flex-grow" style={{ background: '#FAFAF7' }}>
+    <main className="flex-grow bg-toro-light">
       <div className="max-w-2xl mx-auto px-4 py-12">
-        <h1 className="text-3xl font-semibold mb-2" style={{ color: '#132600' }}>
+        <h1 className="text-3xl font-semibold mb-2 text-toro-dark">
           Edit listing
         </h1>
         <p className="text-sm text-gray-500 mb-8">
@@ -191,16 +191,14 @@ export default function EditListingClient({ listing }) {
             <button
               type="button"
               onClick={() => router.back()}
-              className="flex-1 py-3 rounded-xl border text-sm font-medium"
-              style={{ borderColor: '#d1d5db', color: '#374151' }}
+              className="flex-1 py-3 rounded-xl border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-3 rounded-xl text-sm font-medium text-white disabled:opacity-60"
-              style={{ background: '#132600' }}
+              className="flex-1 py-3 rounded-xl text-sm font-medium text-toro-light bg-toro-dark disabled:opacity-60 transition hover:bg-[#1f3d00]"
             >
               {loading ? 'Saving…' : 'Save changes'}
             </button>
@@ -212,7 +210,7 @@ export default function EditListingClient({ listing }) {
 }
 
 const inputClass =
-  'w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#132600]/20 focus:border-[#132600] transition-colors bg-white'
+  'w-full rounded-lg border border-toro-dark/20 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-toro-dark/20 focus:border-toro-dark transition-colors bg-white'
 
 function Field({ label, children }) {
   return (

@@ -44,7 +44,7 @@ export default async function ListingDetailPage({ params }) {
   const isOwner = user?.id === listing.user_id
 
   return (
-    <div className="min-h-screen bg-[#FAFAF7] font-sans">
+    <div className="min-h-screen bg-toro-light font-sans">
       <ListingDetailClient
         listing={listing}
         profile={profile}

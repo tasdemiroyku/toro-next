@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import ToretBull from './ToretBull'
 
-// Category keys matching the database schema
 const CATEGORIES = [
   { value: "", label: "All" },
   { value: "tutoring", label: "Tutoring" },
@@ -17,7 +16,7 @@ const CATEGORIES = [
   { value: "language_exchange", label: "Language Exchange" },
 ]
 
-export default function ListingsClient({ user, initialListings }) {
+export default function ListingsClient({ user, initialListings, searchQuery = '' }) {
   const router = useRouter()
   const [category, setCategory] = useState("")
 
@@ -25,26 +24,54 @@ export default function ListingsClient({ user, initialListings }) {
     ? initialListings.filter(l => l.category === category)
     : initialListings
 
+  const clearSearch = () => router.push('/listings')
+
   return (
     <div className="max-w-6xl mx-auto px-6 lg:px-8 pt-6 pb-20">
 
-      {/* Top bar with consistent yellow button */}
+      {/* Top bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <h1
-          className="text-3xl font-bold text-[#132600]"
-          style={{ fontFamily: 'var(--font-cormorant), serif' }}
-        >
-          Services in Torino
-        </h1>
+        <div>
+          <h1
+            className="text-3xl font-bold text-toro-dark"
+            style={{ fontFamily: 'var(--font-cormorant), serif' }}
+          >
+            Services in Torino
+          </h1>
+          {searchQuery && (
+            <p className="text-sm text-toro-dark/50 mt-1">
+              {listings.length} result{listings.length !== 1 ? 's' : ''} for &ldquo;{searchQuery}&rdquo;
+            </p>
+          )}
+        </div>
         <button
           onClick={() => router.push(user ? '/listings/create' : '/login')}
-          className="bg-[#C9963E] text-[#FAFAF7] px-6 py-2.5 rounded-full text-sm font-bold hover:bg-[#b8852d] transition shadow-sm shrink-0"
+          className="bg-toro-gold text-toro-light px-6 py-2.5 rounded-full text-sm font-bold hover:bg-[#b8852d] transition shadow-sm shrink-0"
         >
           Post your service
         </button>
       </div>
 
-      {/* Category filters - pill shapes */}
+      {/* Active search chip */}
+      {searchQuery && (
+        <div className="flex items-center gap-2 mb-6">
+          <span className="inline-flex items-center gap-2 pl-4 pr-2 py-1.5 bg-toro-dark text-toro-light rounded-full text-sm font-medium">
+            &ldquo;{searchQuery}&rdquo;
+            <button
+              onClick={clearSearch}
+              aria-label="Clear search"
+              className="w-5 h-5 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition"
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </span>
+        </div>
+      )}
+
+      {/* Category filters */}
       <div className="flex gap-2.5 flex-wrap mb-10">
         {CATEGORIES.map(cat => (
           <button
@@ -52,8 +79,8 @@ export default function ListingsClient({ user, initialListings }) {
             onClick={() => setCategory(cat.value)}
             className={`px-5 py-2 rounded-full text-xs font-bold border transition-all duration-200 ${
               category === cat.value
-                ? 'bg-[#132600] text-[#FAFAF7] border-[#132600] shadow-md'
-                : 'bg-white text-[#132600] border-[#132600]/10 hover:border-[#C9963E] hover:bg-[#C9963E]/5'
+                ? 'bg-toro-dark text-toro-light border-toro-dark shadow-md'
+                : 'bg-white text-toro-dark border-toro-dark/10 hover:border-toro-gold hover:bg-toro-gold/5'
             }`}
           >
             {cat.label}
@@ -61,36 +88,50 @@ export default function ListingsClient({ user, initialListings }) {
         ))}
       </div>
 
-      {/* Listings grid or Refined Empty State */}
+      {/* Listings grid or empty state */}
       {listings.length === 0 ? (
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          className="text-center py-20 px-6 flex flex-col items-center gap-6 border border-[#132600]/10 rounded-[3rem] bg-transparent"
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center py-20 px-6 flex flex-col items-center gap-6 border border-toro-dark/10 rounded-[3rem] bg-transparent"
         >
-          {/* Detailed bull icon */}
-          <div className="w-16 h-16 text-[#132600]/15">
+          <div className="w-16 h-16 text-toro-dark/15">
             <ToretBull className="w-full h-full" />
           </div>
-          
+
           <div className="flex flex-col gap-1.5">
-            <p className="text-[#132600] text-lg font-bold">No services here yet</p>
-            <p className="text-[#132600]/40 text-sm max-w-xs mx-auto font-medium">
-              Be the first to offer help in this category to the student community.
+            <p className="text-toro-dark text-lg font-bold">
+              {searchQuery
+                ? `No results for "${searchQuery}"`
+                : 'No services here yet'}
+            </p>
+            <p className="text-toro-dark/40 text-sm max-w-xs mx-auto font-medium">
+              {searchQuery
+                ? 'Try a different keyword or browse all services.'
+                : 'Be the first to offer help in this category to the student community.'}
             </p>
           </div>
 
-          {/* YENİ: Empty State butonu da her zaman görünür */}
-          <button
-            onClick={() => router.push(user ? '/listings/create' : '/login')}
-            className="bg-[#132600] text-[#FAFAF7] px-8 py-3 rounded-full text-sm font-bold hover:bg-[#1f3d00] transition shadow-lg"
-          >
-            Post your service
-          </button>
+          <div className="flex flex-wrap gap-3 justify-center">
+            {searchQuery && (
+              <button
+                onClick={clearSearch}
+                className="border border-toro-dark/15 text-toro-dark px-6 py-3 rounded-full text-sm font-bold hover:bg-toro-dark/5 transition"
+              >
+                Browse all services
+              </button>
+            )}
+            <button
+              onClick={() => router.push(user ? '/listings/create' : '/login')}
+              className="bg-toro-dark text-toro-light px-8 py-3 rounded-full text-sm font-bold hover:bg-[#1f3d00] transition shadow-lg"
+            >
+              Post your service
+            </button>
+          </div>
         </motion.div>
       ) : (
-        <motion.div 
-          layout 
+        <motion.div
+          layout
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           <AnimatePresence mode="popLayout">
@@ -103,48 +144,47 @@ export default function ListingsClient({ user, initialListings }) {
                 transition={{ duration: 0.2 }}
                 key={listing.id}
                 onClick={() => router.push(`/listings/${listing.id}`)}
-                className="bg-white/40 backdrop-blur-sm border border-[#132600]/10 rounded-[2rem] p-6 flex flex-col gap-3 hover:border-[#C9963E] hover:shadow-xl hover:bg-white transition-all cursor-pointer group"
+                className="bg-white/40 backdrop-blur-sm border border-toro-dark/10 rounded-[2rem] p-6 flex flex-col gap-3 hover:border-toro-gold hover:shadow-xl hover:bg-white transition-all cursor-pointer group"
               >
-                {/* Visual refinement: Category tag */}
-                <span className="text-[10px] font-black text-[#C9963E] uppercase tracking-[0.1em] bg-[#C9963E]/10 w-fit px-2.5 py-1 rounded-lg">
+                <span className="text-[10px] font-black text-toro-gold uppercase tracking-[0.1em] bg-toro-gold/10 w-fit px-2.5 py-1 rounded-lg">
                   {CATEGORIES.find(c => c.value === listing.category)?.label || listing.category}
                 </span>
 
-                <h2 className="text-lg font-bold text-[#132600] leading-snug group-hover:text-[#C9963E] transition-colors">
+                <h2 className="text-lg font-bold text-toro-dark leading-snug group-hover:text-toro-gold transition-colors">
                   {listing.title}
                 </h2>
 
-                <p className="text-sm text-[#132600]/50 leading-relaxed line-clamp-2">
+                <p className="text-sm text-toro-dark/50 leading-relaxed line-clamp-2">
                   {listing.description}
                 </p>
 
-                <div className="flex items-center justify-between mt-auto pt-5 border-t border-[#132600]/5">
+                <div className="flex items-center justify-between mt-auto pt-5 border-t border-toro-dark/5">
                   <div className="flex items-center gap-2.5">
                     {listing.profiles?.avatar_url ? (
                       <img
                         src={listing.profiles.avatar_url}
-                        className="w-7 h-7 rounded-full object-cover border border-[#132600]/10"
+                        className="w-7 h-7 rounded-full object-cover border border-toro-dark/10"
                         alt=""
                       />
                     ) : (
-                      <div className="w-7 h-7 rounded-full bg-[#132600]/10 flex items-center justify-center text-[#132600] text-[10px] font-black border border-[#132600]/10">
+                      <div className="w-7 h-7 rounded-full bg-toro-dark/10 flex items-center justify-center text-toro-dark text-[10px] font-black border border-toro-dark/10">
                         {listing.profiles?.full_name?.[0]?.toUpperCase() || "T"}
                       </div>
                     )}
-                    <span className="text-xs font-bold text-[#132600]/60 truncate max-w-[100px]">
+                    <span className="text-xs font-bold text-toro-dark/60 truncate max-w-[100px]">
                       {listing.profiles?.full_name || "Student"}
                     </span>
                   </div>
-                  
+
                   {listing.price === 0 || listing.price_type === 'free' ? (
                     <span className="text-xs font-black text-[#15803d] bg-[#dcfce7] px-2.5 py-1 rounded-full uppercase">
                       Free
                     </span>
                   ) : (
-                    <span className="text-sm font-black text-[#132600]">
+                    <span className="text-sm font-black text-toro-dark">
                       €{listing.price}
                       {listing.price_type && listing.price_type !== 'fixed' && (
-                        <span className="text-[10px] font-bold text-[#132600]/30 ml-0.5">
+                        <span className="text-[10px] font-bold text-toro-dark/30 ml-0.5">
                           /{listing.price_type === 'hour' ? 'hr' : listing.price_type}
                         </span>
                       )}

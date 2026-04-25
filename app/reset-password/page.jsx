@@ -47,21 +47,21 @@ export default function ResetPasswordPage() {
   return (
     <div className="relative h-[calc(100vh-68px)] flex items-center justify-center px-4 font-sans overflow-hidden">
       <img src="/torino.jpeg" alt="Torino" className="absolute inset-0 w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-[#132600]/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-toro-dark/60 backdrop-blur-sm" />
 
-      <div className={`relative z-10 bg-[#FAFAF7] rounded-[2rem] p-8 w-full max-w-[440px] shadow-2xl border border-[#132600]/5 ${loading ? 'overflow-hidden' : ''}`}>
+      <div className={`relative z-10 bg-toro-light rounded-[2rem] p-8 w-full max-w-[440px] shadow-2xl border border-toro-dark/5 ${loading ? 'overflow-hidden' : ''}`}>
         
         {loading && <ToroLoader text="Updating" />}
 
         <div className="flex flex-col gap-6">
           <div className="flex flex-col items-center gap-3">
-            <div className="w-14 h-14 bg-[#132600] rounded-2xl flex items-center justify-center p-2 shadow-lg">
-              <ToretBull className="w-full h-full text-[#FAFAF7]" />
+            <div className="w-14 h-14 bg-toro-dark rounded-2xl flex items-center justify-center p-2 shadow-lg">
+              <ToretBull className="w-full h-full text-toro-light" />
             </div>
-            <h1 className="text-3xl font-bold text-[#132600]" style={{ fontFamily: 'var(--font-cormorant), serif' }}>
+            <h1 className="text-3xl font-bold text-toro-dark">
               New Password.
             </h1>
-            <p className="text-sm text-[#132600]/50 text-center font-medium">
+            <p className="text-sm text-toro-dark/50 text-center font-medium">
               Create a secure password for your Toro account.
             </p>
           </div>
@@ -74,9 +74,9 @@ export default function ResetPasswordPage() {
                   placeholder="New password" 
                   value={password} 
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full border border-[#132600]/15 rounded-full px-5 py-3 pr-12 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white font-medium" 
+                  className="w-full border border-toro-dark/15 rounded-full px-5 py-3 pr-12 text-sm text-toro-dark focus:outline-none focus:border-toro-gold transition bg-white font-medium" 
                 />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#132600]/40 hover:text-[#132600] transition">
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-toro-dark/40 hover:text-toro-dark transition">
                   {!showPassword ? (
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
                   ) : (
@@ -90,11 +90,11 @@ export default function ResetPasswordPage() {
                 placeholder="Confirm new password" 
                 value={confirmPassword} 
                 onChange={e => setConfirmPassword(e.target.value)}
-                className="border border-[#132600]/15 rounded-full px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white font-medium" 
+                className="border border-toro-dark/15 rounded-full px-5 py-3 text-sm text-toro-dark focus:outline-none focus:border-toro-gold transition bg-white font-medium" 
               />
             </div>
 
-            <button type="submit" disabled={loading} className="w-full bg-[#132600] text-[#FAFAF7] rounded-full py-3.5 text-sm font-semibold hover:bg-[#1f3d00] transition shadow-lg disabled:opacity-40 disabled:cursor-not-allowed">
+            <button type="submit" disabled={loading} className="w-full bg-toro-dark text-toro-light rounded-full py-3.5 text-sm font-semibold hover:bg-[#1f3d00] transition shadow-lg disabled:opacity-40 disabled:cursor-not-allowed">
               Update Password
             </button>
 

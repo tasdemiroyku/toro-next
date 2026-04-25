@@ -65,18 +65,15 @@ export default function CreateListing() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAF7] font-sans">
+    <div className="min-h-screen bg-toro-light font-sans">
 
       <div className="max-w-2xl mx-auto px-8 py-16 flex flex-col gap-8">
 
         <div>
-          <h1
-            className="text-3xl font-bold text-[#132600]"
-            style={{ fontFamily: "'Cormorant Garamond', serif" }}
-          >
+          <h1 className="text-3xl font-bold text-toro-dark">
             Post a service
           </h1>
-          <p className="text-sm text-[#132600]/50 mt-1">
+          <p className="text-sm text-toro-dark/50 mt-1 font-medium">
             Tell people what you offer and how to reach you.
           </p>
         </div>
@@ -85,7 +82,7 @@ export default function CreateListing() {
 
           {/* Title */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#132600]/50 uppercase tracking-wide">
+            <label className="text-xs font-semibold text-toro-dark/50 uppercase tracking-wide">
               Title <span className="text-red-400">*</span>
             </label>
             <input
@@ -94,13 +91,13 @@ export default function CreateListing() {
               value={form.title}
               onChange={e => update('title', e.target.value)}
               maxLength={100}
-              className="border border-[#132600]/15 rounded-2xl px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white"
+              className="toro-input !rounded-2xl"
             />
           </div>
 
           {/* Category */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#132600]/50 uppercase tracking-wide">
+            <label className="text-xs font-semibold text-toro-dark/50 uppercase tracking-wide">
               Category <span className="text-red-400">*</span>
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -110,8 +107,8 @@ export default function CreateListing() {
                   onClick={() => update('category', cat.value)}
                   className={`py-2.5 px-3 rounded-xl text-xs font-semibold border transition ${
                     form.category === cat.value
-                      ? 'bg-[#132600] text-[#FAFAF7] border-[#132600]'
-                      : 'bg-white text-[#132600] border-[#132600]/15 hover:border-[#C9963E]'
+                      ? 'bg-toro-dark text-toro-light border-toro-dark'
+                      : 'bg-white text-toro-dark border-toro-dark/15 hover:border-toro-gold'
                   }`}
                 >
                   {cat.label}
@@ -122,7 +119,7 @@ export default function CreateListing() {
 
           {/* Description */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#132600]/50 uppercase tracking-wide">
+            <label className="text-xs font-semibold text-toro-dark/50 uppercase tracking-wide">
               Description <span className="text-red-400">*</span>
             </label>
             <textarea
@@ -131,18 +128,18 @@ export default function CreateListing() {
               value={form.description}
               onChange={e => update('description', e.target.value)}
               maxLength={1000}
-              className="border border-[#132600]/15 rounded-2xl px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white resize-none"
+              className="toro-input !rounded-2xl resize-none"
             />
           </div>
 
-          {/* Price */}
+          {/* Price - Düzeltilen Kısım */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#132600]/50 uppercase tracking-wide">
+            <label className="text-xs font-semibold text-toro-dark/50 uppercase tracking-wide">
               Price <span className="text-red-400">*</span>
             </label>
             <div className="flex gap-3">
               <div className="relative flex-1">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-[#132600]/40">€</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-toro-dark/40 font-medium">€</span>
                 <input
                   type="number"
                   min="0"
@@ -150,25 +147,35 @@ export default function CreateListing() {
                   placeholder="0"
                   value={form.price}
                   onChange={e => update('price', e.target.value)}
-                  className="w-full border border-[#132600]/15 rounded-2xl pl-8 pr-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white"
+                  className="toro-input !rounded-2xl !pl-8"
                 />
               </div>
-              <select
-                value={form.price_type}
-                onChange={e => update('price_type', e.target.value)}
-                className="border border-[#132600]/15 rounded-2xl px-4 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white"
-              >
-                <option value="hour">per hour</option>
-                <option value="session">per session</option>
-                <option value="day">per day</option>
-                <option value="fixed">fixed price</option>
-              </select>
+              
+              {/* Dropdown Container */}
+              <div className="relative w-[150px] shrink-0">
+                <select
+                  value={form.price_type}
+                  onChange={e => update('price_type', e.target.value)}
+                  className="toro-input !rounded-2xl appearance-none cursor-pointer !pr-10"
+                >
+                  <option value="hour">per hour</option>
+                  <option value="session">per session</option>
+                  <option value="day">per day</option>
+                  <option value="fixed">fixed price</option>
+                </select>
+                {/* Custom Chevron Arrow (Ok İkonu) */}
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-toro-dark/40">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m6 9 6 6 6-6"/>
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Location */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#132600]/50 uppercase tracking-wide">
+            <label className="text-xs font-semibold text-toro-dark/50 uppercase tracking-wide">
               Location
             </label>
             <input
@@ -176,13 +183,13 @@ export default function CreateListing() {
               placeholder="e.g. Torino, Crocetta"
               value={form.location}
               onChange={e => update('location', e.target.value)}
-              className="border border-[#132600]/15 rounded-2xl px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white"
+              className="toro-input !rounded-2xl"
             />
           </div>
 
           {/* Languages */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#132600]/50 uppercase tracking-wide">
+            <label className="text-xs font-semibold text-toro-dark/50 uppercase tracking-wide">
               Languages
             </label>
             <input
@@ -190,25 +197,25 @@ export default function CreateListing() {
               placeholder="e.g. Italian, English, Turkish"
               value={form.languages}
               onChange={e => update('languages', e.target.value)}
-              className="border border-[#132600]/15 rounded-2xl px-5 py-3 text-sm text-[#132600] focus:outline-none focus:border-[#C9963E] transition bg-white"
+              className="toro-input !rounded-2xl"
             />
           </div>
 
         </div>
 
-        {error && <p className="text-sm text-red-400">{error}</p>}
+        {error && <p className="text-sm font-semibold text-red-500">{error}</p>}
 
         <div className="flex gap-3">
           <button
             onClick={() => router.push('/listings')}
-            className="flex-1 border border-[#132600]/15 text-[#132600] rounded-full py-3 text-sm font-semibold hover:bg-[#132600]/5 transition"
+            className="flex-1 toro-btn-outline !py-3 !rounded-full bg-transparent"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="flex-1 bg-[#132600] text-[#FAFAF7] rounded-full py-3 text-sm font-semibold hover:bg-[#1f3d00] transition disabled:opacity-60"
+            className="flex-1 toro-btn-primary !py-3 !rounded-full"
           >
             {loading ? "Publishing..." : "Publish listing"}
           </button>

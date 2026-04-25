@@ -52,23 +52,22 @@ export default function MyListingsClient({ listings: initial }) {
   }
 
   return (
-    <main className="flex-grow" style={{ background: 'var(--background, #FAFAF7)' }}>
+    <main className="flex-grow bg-toro-light">
       <div className="max-w-5xl mx-auto px-4 py-12">
 
         {/* Header row */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-semibold" style={{ color: '#132600' }}>
+            <h1 className="text-3xl font-semibold text-toro-dark">
               My Listings
             </h1>
-            <p className="text-sm mt-1" style={{ color: '#6b7280' }}>
+            <p className="text-sm mt-1 text-gray-500">
               {listings.length} listing{listings.length !== 1 ? 's' : ''}
             </p>
           </div>
           <Link
             href="/listings/create"
-            className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90"
-            style={{ background: '#132600' }}
+            className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90 bg-toro-dark"
           >
             + New listing
           </Link>
@@ -78,12 +77,11 @@ export default function MyListingsClient({ listings: initial }) {
         {listings.length === 0 && (
           <div className="text-center py-24 text-gray-400">
             <p className="text-5xl mb-4">🐂</p>
-            <p className="text-lg font-medium mb-1" style={{ color: '#132600' }}>No listings yet</p>
+            <p className="text-lg font-medium mb-1 text-toro-dark">No listings yet</p>
             <p className="text-sm mb-6">Offer a service to the Turin community.</p>
             <Link
               href="/listings/create"
-              className="px-5 py-2 rounded-lg text-sm font-medium text-white"
-              style={{ background: '#132600' }}
+              className="px-5 py-2 rounded-lg text-sm font-medium text-white bg-toro-dark"
             >
               Create your first listing
             </Link>
@@ -105,20 +103,18 @@ export default function MyListingsClient({ listings: initial }) {
                   transition: { duration: 0.18 },
                 }}
                 transition={{ duration: 0.22, ease: 'easeOut' }}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border p-5"
-                style={{
-                  borderColor: listing.is_active ? '#d1d5db' : '#e5e7eb',
-                  background: listing.is_active ? '#fff' : '#f9fafb',
-                  opacity: listing.is_active ? 1 : 0.75,
-                }}
+                className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border p-5 transition-opacity ${
+                  listing.is_active 
+                    ? 'border-gray-300 bg-white opacity-100' 
+                    : 'border-gray-200 bg-gray-50 opacity-75'
+                }`}
               >
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <Link
                       href={`/listings/${listing.id}`}
-                      className="font-semibold text-base truncate hover:underline"
-                      style={{ color: '#132600' }}
+                      className="font-semibold text-base truncate hover:underline text-toro-dark"
                     >
                       {listing.title}
                     </Link>
@@ -143,8 +139,7 @@ export default function MyListingsClient({ listings: initial }) {
                   {/* Edit */}
                   <Link
                     href={`/listings/${listing.id}/edit`}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors hover:bg-gray-50"
-                    style={{ borderColor: '#d1d5db', color: '#374151' }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors border-gray-300 text-gray-700 hover:bg-gray-50"
                   >
                     Edit
                   </Link>
@@ -153,8 +148,7 @@ export default function MyListingsClient({ listings: initial }) {
                   <button
                     onClick={() => handleToggle(listing)}
                     disabled={loadingId === listing.id}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors hover:bg-gray-50 disabled:opacity-50"
-                    style={{ borderColor: '#d1d5db', color: '#374151' }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                   >
                     {loadingId === listing.id
                       ? '…'
@@ -165,8 +159,7 @@ export default function MyListingsClient({ listings: initial }) {
                   <button
                     onClick={() => setDeletingId(listing.id)}
                     disabled={loadingId === listing.id}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors hover:bg-red-50 disabled:opacity-50"
-                    style={{ borderColor: '#fca5a5', color: '#dc2626' }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50"
                   >
                     Delete
                   </button>
@@ -184,8 +177,7 @@ export default function MyListingsClient({ listings: initial }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style={{ background: 'rgba(0,0,0,0.4)' }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
             onClick={() => setDeletingId(null)}
           >
             <motion.div
@@ -195,7 +187,7 @@ export default function MyListingsClient({ listings: initial }) {
               onClick={e => e.stopPropagation()}
               className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl"
             >
-              <h2 className="text-lg font-semibold mb-2" style={{ color: '#132600' }}>
+              <h2 className="text-lg font-semibold mb-2 text-toro-dark">
                 Delete listing?
               </h2>
               <p className="text-sm text-gray-500 mb-6">
@@ -204,16 +196,14 @@ export default function MyListingsClient({ listings: initial }) {
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => setDeletingId(null)}
-                  className="px-4 py-2 rounded-lg text-sm border"
-                  style={{ borderColor: '#d1d5db' }}
+                  className="px-4 py-2 rounded-lg text-sm border border-gray-300 hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleDelete(deletingId)}
                   disabled={loadingId === deletingId}
-                  className="px-4 py-2 rounded-lg text-sm text-white font-medium disabled:opacity-50"
-                  style={{ background: '#dc2626' }}
+                  className="px-4 py-2 rounded-lg text-sm text-white font-medium disabled:opacity-50 bg-red-600 hover:bg-red-700 transition-colors"
                 >
                   {loadingId === deletingId ? 'Deleting…' : 'Delete'}
                 </button>
@@ -229,15 +219,12 @@ export default function MyListingsClient({ listings: initial }) {
 function StatusBadge({ active }) {
   return (
     <span
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
-      style={{
-        background: active ? '#dcfce7' : '#f3f4f6',
-        color: active ? '#15803d' : '#6b7280',
-      }}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+        active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+      }`}
     >
       <span
-        className="w-1.5 h-1.5 rounded-full"
-        style={{ background: active ? '#16a34a' : '#9ca3af' }}
+        className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-green-600' : 'bg-gray-400'}`}
       />
       {active ? 'Active' : 'Paused'}
     </span>

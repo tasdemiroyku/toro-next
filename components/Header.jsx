@@ -38,8 +38,8 @@ function LanguageDropdown() {
   const { open, setOpen, ref, handleMouseEnter, handleMouseLeave } = useDropdown()
 
   return (
-    <div 
-      className="relative" 
+    <div
+      className="relative"
       ref={ref}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -48,7 +48,7 @@ function LanguageDropdown() {
 
       <button
         onClick={() => setOpen(!open)}
-        className="text-sm text-[#FAFAF7]/70 hover:text-[#FAFAF7] transition font-medium flex items-center gap-1.5 h-full"
+        className="text-sm text-toro-light/70 hover:text-toro-light transition font-medium flex items-center gap-1.5 h-full"
         aria-label="Language selection"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -66,24 +66,24 @@ function LanguageDropdown() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-1/2 -translate-x-1/2 mt-3 w-32 bg-[#FAFAF7] rounded-2xl shadow-xl border border-[#132600]/10 overflow-hidden z-50 py-1"
+            className="absolute left-1/2 -translate-x-1/2 mt-3 w-32 bg-toro-light rounded-2xl shadow-xl border border-toro-dark/10 overflow-hidden z-50 py-1"
           >
             <button
               onClick={() => setOpen(false)}
-              className="w-full text-left px-4 py-2.5 text-sm text-[#132600] font-semibold hover:bg-[#132600]/5 transition flex items-center justify-between"
+              className="w-full text-left px-4 py-2.5 text-sm text-toro-dark font-semibold hover:bg-toro-dark/5 transition flex items-center justify-between"
             >
               English
-              <div className="w-1.5 h-1.5 rounded-full bg-[#C9963E]"></div>
+              <div className="w-1.5 h-1.5 rounded-full bg-toro-gold"></div>
             </button>
             <button
               onClick={() => setOpen(false)}
-              className="w-full text-left px-4 py-2.5 text-sm text-[#132600]/60 hover:text-[#132600] hover:bg-[#132600]/5 transition"
+              className="w-full text-left px-4 py-2.5 text-sm text-toro-dark/60 hover:text-toro-dark hover:bg-toro-dark/5 transition"
             >
               Italiano
             </button>
             <button
               onClick={() => setOpen(false)}
-              className="w-full text-left px-4 py-2.5 text-sm text-[#132600]/60 hover:text-[#132600] hover:bg-[#132600]/5 transition"
+              className="w-full text-left px-4 py-2.5 text-sm text-toro-dark/60 hover:text-toro-dark hover:bg-toro-dark/5 transition"
             >
               Türkçe
             </button>
@@ -108,8 +108,8 @@ function UserDropdown({ user, setUser }) {
   }
 
   return (
-    <div 
-      className="relative" 
+    <div
+      className="relative"
       ref={ref}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -118,7 +118,7 @@ function UserDropdown({ user, setUser }) {
 
       <button
         onClick={() => setOpen(!open)}
-        className="w-9 h-9 rounded-full bg-[#132600] border-2 border-[#FAFAF7]/20 hover:border-[#C9963E] transition flex items-center justify-center shrink-0"
+        className="w-9 h-9 rounded-full bg-toro-dark border-2 border-toro-light/20 hover:border-toro-gold transition flex items-center justify-center shrink-0"
         aria-label="User menu"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FAFAF7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -134,13 +134,13 @@ function UserDropdown({ user, setUser }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-52 bg-[#FAFAF7] rounded-2xl shadow-xl border border-[#132600]/10 overflow-hidden z-50"
+            className="absolute right-0 mt-2 w-52 bg-toro-light rounded-2xl shadow-xl border border-toro-dark/10 overflow-hidden z-50"
           >
-            <div className="px-4 py-3 border-b border-[#132600]/8">
-              <p className="text-xs font-semibold text-[#132600] truncate">
+            <div className="px-4 py-3 border-b border-toro-dark/8">
+              <p className="text-xs font-semibold text-toro-dark truncate">
                 {user?.user_metadata?.full_name || 'My Account'}
               </p>
-              <p className="text-xs text-[#132600]/40 truncate mt-0.5">
+              <p className="text-xs text-toro-dark/40 truncate mt-0.5">
                 {user?.email}
               </p>
             </div>
@@ -148,9 +148,9 @@ function UserDropdown({ user, setUser }) {
             <div className="py-1">
               <button
                 onClick={() => { setOpen(false); router.push('/profile') }}
-                className="w-full text-left px-4 py-2.5 text-sm text-[#132600] hover:bg-[#132600]/5 transition flex items-center gap-2.5"
+                className="w-full text-left px-4 py-2.5 text-sm text-toro-dark hover:bg-toro-dark/5 transition flex items-center gap-2.5"
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#132600" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                   <circle cx="12" cy="7" r="4"/>
                 </svg>
@@ -159,9 +159,9 @@ function UserDropdown({ user, setUser }) {
 
               <button
                 onClick={() => { setOpen(false); router.push('/listings/my') }}
-                className="w-full text-left px-4 py-2.5 text-sm text-[#132600] hover:bg-[#132600]/5 transition flex items-center gap-2.5"
+                className="w-full text-left px-4 py-2.5 text-sm text-toro-dark hover:bg-toro-dark/5 transition flex items-center gap-2.5"
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#132600" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
                   <rect x="9" y="3" width="6" height="4" rx="1"/>
                   <line x1="9" y1="12" x2="15" y2="12"/>
@@ -172,9 +172,9 @@ function UserDropdown({ user, setUser }) {
 
               <button
                 onClick={() => { setOpen(false); router.push('/listings/create') }}
-                className="w-full text-left px-4 py-2.5 text-sm text-[#132600] hover:bg-[#132600]/5 transition flex items-center gap-2.5"
+                className="w-full text-left px-4 py-2.5 text-sm text-toro-dark hover:bg-toro-dark/5 transition flex items-center gap-2.5"
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#132600" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="12" y1="5" x2="12" y2="19"/>
                   <line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
@@ -182,7 +182,7 @@ function UserDropdown({ user, setUser }) {
               </button>
             </div>
 
-            <div className="border-t border-[#132600]/8 py-1">
+            <div className="border-t border-toro-dark/8 py-1">
               <button
                 onClick={handleLogout}
                 className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-red-50 transition flex items-center gap-2.5"
@@ -207,6 +207,7 @@ export default function Header({ user: initialUser = null }) {
   const pathname = usePathname()
   const [user, setUser] = useState(initialUser)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [headerSearch, setHeaderSearch] = useState('')
   const { scrollY } = useScroll()
 
   const isHome = pathname === '/'
@@ -219,6 +220,17 @@ export default function Header({ user: initialUser = null }) {
   const searchOpacity = useTransform(clampedScroll, [250, 350], [0, 1])
   const searchY = useTransform(clampedScroll, [250, 350], [10, 0])
   const searchPointerEvents = useTransform(clampedScroll, [0, 349, 350], ["none", "none", "auto"])
+
+  const handleHeaderSearch = (e) => {
+    e?.preventDefault()
+    const q = headerSearch.trim()
+    if (!q) {
+      router.push('/listings')
+      return
+    }
+    router.push(`/listings?q=${encodeURIComponent(q)}`)
+    setHeaderSearch('')
+  }
 
   useEffect(() => {
     const supabase = createClient()
@@ -236,65 +248,73 @@ export default function Header({ user: initialUser = null }) {
     <>
       <motion.header
         style={{ height: isHome ? animatedHeight : 68 }}
-        className="bg-[#132600] sticky top-0 z-50 w-full"
+        className="bg-toro-dark sticky top-0 z-50 w-full"
       >
         <div className="max-w-6xl mx-auto px-6 h-full flex items-center justify-between gap-4">
 
           <Link href="/" className="flex items-center gap-3 shrink-0">
-            <motion.div 
-              style={{ 
-                width: isHome ? animatedLogo : 36, 
-                height: isHome ? animatedLogo : 36 
+            <motion.div
+              style={{
+                width: isHome ? animatedLogo : 36,
+                height: isHome ? animatedLogo : 36
               }}
             >
-              <ToretBull className="w-full h-full text-[#FAFAF7]" />
+              <ToretBull className="w-full h-full text-toro-light" />
             </motion.div>
             <motion.span
-              style={{ 
-                fontSize: isHome ? animatedTitle : 25, 
-                fontFamily: 'var(--font-cormorant), serif' 
+              style={{
+                fontSize: isHome ? animatedTitle : 25,
+                fontFamily: 'var(--font-cormorant), serif'
               }}
-              className="font-bold text-[#FAFAF7] leading-none"
+              className="font-bold text-toro-light leading-none"
             >
               Toro
             </motion.span>
           </Link>
 
+          {/* Sticky search — only visible on Home after scrolling past the hero */}
           {isHome && (
-            <motion.div 
+            <motion.form
+              onSubmit={handleHeaderSearch}
               style={{ opacity: searchOpacity, y: searchY, pointerEvents: searchPointerEvents }}
-              className="flex-1 max-w-sm hidden md:flex items-center bg-[#FAFAF7]/10 backdrop-blur-md border border-[#FAFAF7]/20 rounded-full p-1 transition-all hover:bg-[#FAFAF7]/20 mx-auto"
+              className="flex-1 max-w-sm hidden md:flex items-center bg-toro-light/10 backdrop-blur-md border border-toro-light/20 rounded-full p-1 transition-all hover:bg-toro-light/20 mx-auto"
             >
-              <input 
-                type="text" 
-                placeholder="What are you looking for?" 
-                className="flex-1 bg-transparent outline-none text-[#FAFAF7] placeholder:text-[#FAFAF7]/60 text-sm py-1.5 px-4 font-medium"
+              <input
+                type="text"
+                placeholder="What are you looking for?"
+                value={headerSearch}
+                onChange={e => setHeaderSearch(e.target.value)}
+                className="flex-1 bg-transparent outline-none text-toro-light placeholder:text-toro-light/60 text-sm py-1.5 px-4 font-medium"
               />
-              <button className="bg-[#132600] hover:bg-[#1f3d00] text-[#C9963E] rounded-full p-2 transition-all shadow-md active:scale-95 shrink-0">
+              <button
+                type="submit"
+                aria-label="Search"
+                className="bg-toro-dark hover:bg-[#1f3d00] text-toro-gold rounded-full p-2 transition-all shadow-md active:scale-95 shrink-0"
+              >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="11" cy="11" r="8"></circle>
                   <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
               </button>
-            </motion.div>
+            </motion.form>
           )}
 
           <div className="hidden md:flex items-center gap-5 shrink-0">
-            <Link href="/listings" className="text-sm text-[#FAFAF7]/70 hover:text-[#FAFAF7] transition font-medium whitespace-nowrap">
+            <Link href="/listings" className="text-sm text-toro-light/70 hover:text-toro-light transition font-medium whitespace-nowrap">
               Find Services
             </Link>
             <button
               onClick={() => router.push(user ? '/listings/create' : '/login')}
-              className="text-sm text-[#FAFAF7]/70 hover:text-[#FAFAF7] transition font-medium whitespace-nowrap"
+              className="text-sm text-toro-light/70 hover:text-toro-light transition font-medium whitespace-nowrap"
             >
               Offer Skills
             </button>
 
-            <div className="w-px h-4 bg-[#FAFAF7]/15 mx-0.5" />
+            <div className="w-px h-4 bg-toro-light/15 mx-0.5" />
 
             <LanguageDropdown />
 
-            <div className="w-px h-4 bg-[#FAFAF7]/15 mx-0.5" />
+            <div className="w-px h-4 bg-toro-light/15 mx-0.5" />
 
             {user ? (
               <UserDropdown user={user} setUser={setUser} />
@@ -302,13 +322,13 @@ export default function Header({ user: initialUser = null }) {
               <div className="flex items-center gap-5">
                 <button
                   onClick={() => router.push('/login')}
-                  className="text-sm text-[#FAFAF7]/70 hover:text-[#FAFAF7] transition font-medium"
+                  className="text-sm text-toro-light/70 hover:text-toro-light transition font-medium"
                 >
                   Log in
                 </button>
                 <button
                   onClick={() => router.push('/login?mode=signup')}
-                  className="bg-[#C9963E] text-[#FAFAF7] text-sm px-5 py-2 rounded-full font-semibold hover:bg-[#b8852d] transition whitespace-nowrap shadow-sm"
+                  className="bg-toro-gold text-toro-light text-sm px-5 py-2 rounded-full font-semibold hover:bg-[#b8852d] transition whitespace-nowrap shadow-sm"
                 >
                   Sign up
                 </button>
@@ -323,9 +343,9 @@ export default function Header({ user: initialUser = null }) {
               className="flex flex-col gap-1.5 p-2"
               aria-label="Toggle menu"
             >
-              <motion.span animate={mobileOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }} className="block w-6 h-0.5 bg-[#FAFAF7] origin-center"/>
-              <motion.span animate={mobileOpen ? { opacity: 0 } : { opacity: 1 }} className="block w-6 h-0.5 bg-[#FAFAF7]"/>
-              <motion.span animate={mobileOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }} className="block w-6 h-0.5 bg-[#FAFAF7] origin-center"/>
+              <motion.span animate={mobileOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }} className="block w-6 h-0.5 bg-toro-light origin-center"/>
+              <motion.span animate={mobileOpen ? { opacity: 0 } : { opacity: 1 }} className="block w-6 h-0.5 bg-toro-light"/>
+              <motion.span animate={mobileOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }} className="block w-6 h-0.5 bg-toro-light origin-center"/>
             </button>
           </div>
 
@@ -339,37 +359,37 @@ export default function Header({ user: initialUser = null }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-[68px] left-0 right-0 z-40 bg-[#132600] border-t border-[#FAFAF7]/10 px-6 py-6 flex flex-col gap-4 md:hidden"
+            className="fixed top-[68px] left-0 right-0 z-40 bg-toro-dark border-t border-toro-light/10 px-6 py-6 flex flex-col gap-4 md:hidden"
           >
-            <div className="flex items-center gap-4 pb-4 mb-2 border-b border-[#FAFAF7]/10">
-              <span className="text-xs text-[#FAFAF7]/40 uppercase tracking-wider font-semibold">Language</span>
+            <div className="flex items-center gap-4 pb-4 mb-2 border-b border-toro-light/10">
+              <span className="text-xs text-toro-light/40 uppercase tracking-wider font-semibold">Language</span>
               <div className="flex gap-3">
-                <button className="text-sm text-[#C9963E] font-bold">EN</button>
-                <button className="text-sm text-[#FAFAF7]/50 hover:text-[#FAFAF7] font-medium transition">IT</button>
-                <button className="text-sm text-[#FAFAF7]/50 hover:text-[#FAFAF7] font-medium transition">TR</button>
+                <button className="text-sm text-toro-gold font-bold">EN</button>
+                <button className="text-sm text-toro-light/50 hover:text-toro-light font-medium transition">IT</button>
+                <button className="text-sm text-toro-light/50 hover:text-toro-light font-medium transition">TR</button>
               </div>
             </div>
 
-            <Link href="/listings" onClick={() => setMobileOpen(false)} className="text-base text-[#FAFAF7]/70 hover:text-[#FAFAF7] transition font-medium py-2">
+            <Link href="/listings" onClick={() => setMobileOpen(false)} className="text-base text-toro-light/70 hover:text-toro-light transition font-medium py-2">
               Find Services
             </Link>
             <button
               onClick={() => { setMobileOpen(false); router.push(user ? '/listings/create' : '/login') }}
-              className="text-left text-base text-[#FAFAF7]/70 hover:text-[#FAFAF7] transition font-medium py-2"
+              className="text-left text-base text-toro-light/70 hover:text-toro-light transition font-medium py-2"
             >
               Offer Skills
             </button>
             {!user && (
-              <div className="pt-4 border-t border-[#FAFAF7]/10 mt-2 flex flex-col gap-3">
+              <div className="pt-4 border-t border-toro-light/10 mt-2 flex flex-col gap-3">
                 <button
                   onClick={() => { setMobileOpen(false); router.push('/login') }}
-                  className="w-full bg-[#C9963E] text-[#FAFAF7] py-3.5 rounded-full font-semibold hover:bg-[#b8852d] transition"
+                  className="w-full bg-toro-gold text-toro-light py-3.5 rounded-full font-semibold hover:bg-[#b8852d] transition"
                 >
                   Join Toro
                 </button>
                 <button
-                   onClick={() => { setMobileOpen(false); router.push('/login') }}
-                   className="w-full text-center text-sm text-[#FAFAF7]/50 py-2"
+                  onClick={() => { setMobileOpen(false); router.push('/login') }}
+                  className="w-full text-center text-sm text-toro-light/50 py-2"
                 >
                   Already have an account? Log in
                 </button>
