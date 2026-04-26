@@ -108,25 +108,27 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative h-[calc(100vh-68px)] flex items-center justify-center px-4 overflow-hidden">
+    <div className="relative h-[calc(100dvh-72px)] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
       <img src="/torino.jpeg" alt="Torino" className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0 bg-toro-dark/60 backdrop-blur-sm" />
 
-      <div className={`relative z-10 bg-toro-light rounded-[2rem] w-full max-w-[410px] max-h-[95vh] shadow-2xl border border-toro-dark/5 scrollbar-hide ${loading ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+      <div className="relative z-10 bg-toro-light rounded-[1.5rem] sm:rounded-[2rem] w-full max-w-[380px] max-h-full shadow-2xl border border-toro-dark/5 flex flex-col overflow-hidden">
         
         {loading && <ToroLoader text={mode === 'forgot' ? 'Sending' : 'Processing'} />}
 
-        <div className="p-8 flex flex-col gap-6">
-          <div className="flex flex-col items-center gap-3 shrink-0">
-            <div className="w-14 h-14 bg-toro-dark rounded-2xl flex items-center justify-center p-2 shadow-lg">
+        <div className="p-5 sm:p-6 flex flex-col gap-4 sm:gap-5 overflow-y-auto">
+          <div className="flex flex-col items-center gap-2 shrink-0">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-toro-dark rounded-2xl flex items-center justify-center p-2 shadow-lg">
               <ToretBull className="w-full h-full text-toro-light" />
             </div>
-            <h1 className="text-3xl font-bold text-toro-dark">
+            <h1 className="text-xl sm:text-2xl font-bold text-toro-dark">
               {mode === 'login' ? 'Welcome back.' : mode === 'signup' ? 'Join Toro.' : 'Reset Password.'}
             </h1>
-            <p className="text-sm text-toro-dark/50 text-center font-medium">
-              {mode === 'forgot' ? 'Enter your email to receive a reset link.' : 'Join the community.'}
-            </p>
+            {mode === 'forgot' && (
+              <p className="text-sm text-toro-dark/50 text-center font-medium">
+                Enter your email to receive a reset link.
+              </p>
+            )}
           </div>
 
           {mode !== 'forgot' && (
@@ -152,7 +154,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6 shrink-0">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 shrink-0">
             <div className="flex flex-col gap-3">
               {mode === 'signup' && (
                 <input ref={nameRef} type="text" name="name" autoComplete="name" placeholder="Full name" value={name} onChange={e => setName(e.target.value)} className="toro-input" />

@@ -223,6 +223,7 @@ export default function Header({ user: initialUser = null }) {
 
   const handleHeaderSearch = (e) => {
     e?.preventDefault()
+    if (mobileOpen) setMobileOpen(false)
     const q = headerSearch.trim()
     if (!q) {
       router.push('/listings')
@@ -382,7 +383,8 @@ export default function Header({ user: initialUser = null }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-[72px] left-0 right-0 z-40 bg-toro-dark border-t border-toro-light/10 px-6 py-6 flex flex-col gap-4 md:hidden"
+            style={{ top: isHome ? animatedHeight : 72 }}
+            className="fixed left-0 right-0 z-40 bg-toro-dark border-t border-toro-light/10 px-6 py-6 flex flex-col gap-4 md:hidden"
           >
             <div className="flex items-center gap-4 pb-4 mb-2 border-b border-toro-light/10">
               <span className="text-xs text-toro-light/40 uppercase tracking-wider font-semibold">Language</span>
@@ -392,6 +394,29 @@ export default function Header({ user: initialUser = null }) {
                 <button className="text-sm text-toro-light/50 hover:text-toro-light font-medium transition">TR</button>
               </div>
             </div>
+
+            <form
+              onSubmit={handleHeaderSearch}
+              className="w-full flex items-center bg-toro-light/10 backdrop-blur-md border border-toro-light/20 rounded-full p-1.5 transition-all hover:bg-toro-light/20 mb-2 mt-2"
+            >
+              <input
+                type="text"
+                placeholder="What are you looking for?"
+                value={headerSearch}
+                onChange={e => setHeaderSearch(e.target.value)}
+                className="flex-1 bg-transparent outline-none text-toro-light placeholder:text-toro-light/60 text-base py-2 px-4 font-medium"
+              />
+              <button
+                type="submit"
+                aria-label="Search"
+                className="bg-toro-dark hover:bg-[#1f3d00] text-toro-gold rounded-full p-2.5 transition-all shadow-md active:scale-95 shrink-0"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </button>
+            </form>
 
             <Link href="/listings" onClick={() => setMobileOpen(false)} className="text-base text-toro-light/70 hover:text-toro-light transition font-medium py-2">
               Find Services
@@ -412,9 +437,9 @@ export default function Header({ user: initialUser = null }) {
                 </button>
                 <button
                   onClick={() => { setMobileOpen(false); router.push('/login') }}
-                  className="w-full text-center text-sm text-toro-light/50 py-2"
+                  className="w-full text-center text-sm text-toro-light/50 py-2 group"
                 >
-                  Already have an account? Log in
+                  Already have an account? <span className="text-toro-gold group-hover:underline">Log in</span>
                 </button>
               </div>
             )}
