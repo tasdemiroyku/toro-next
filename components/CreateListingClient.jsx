@@ -5,13 +5,6 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { CATEGORIES, PRICE_TYPES } from '@/lib/categories'
 
-const PRICE_TYPES = [
-  { value: 'hour',    label: 'per hour' },
-  { value: 'session', label: 'per session' },
-  { value: 'day',     label: 'per day' },
-  { value: 'fixed',   label: 'fixed price' },
-]
-
 export default function CreateListingClient({ userId }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
