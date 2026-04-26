@@ -16,7 +16,7 @@
     color: var(--color-toro-dark);
     @apply antialiased font-sans flex flex-col min-h-screen;
   }
-  
+
   button {
     cursor: pointer;
   }
@@ -24,28 +24,110 @@
 
 /* COMPONENTS */
 @layer components {
-  
+
+  /* ── Cards ─────────────────────────────────────────────── */
+
   .toro-card {
     @apply bg-white border border-toro-dark/10 rounded-[2rem] shadow-sm;
   }
-  
+
+  /* ── Inputs ─────────────────────────────────────────────── */
+
+  /*
+   * Base input style. Used on all <input>, <textarea>, and <select> elements.
+   * Shape: rounded-full for single-line inputs.
+   * For textarea, override with !rounded-2xl at the usage site.
+   */
   .toro-input {
-    @apply w-full border border-toro-dark/15 rounded-full px-5 py-3 text-sm text-toro-dark bg-white font-medium transition placeholder:text-toro-dark/40 focus:outline-none focus:border-toro-gold focus:ring-1 focus:ring-toro-gold/30;
+    @apply
+      w-full
+      border border-toro-dark/15
+      rounded-full
+      px-5 py-3
+      text-sm text-toro-dark
+      bg-white
+      font-medium
+      transition
+      placeholder:text-toro-dark/40
+      focus:outline-none
+      focus:border-toro-gold
+      focus:ring-1 focus:ring-toro-gold/30;
   }
 
+  /* ── Buttons ─────────────────────────────────────────────── */
+
+  /*
+   * Primary action button — deep green background, off-white text.
+   * Use for: submit, publish, save, primary CTA.
+   */
   .toro-btn-primary {
-    @apply bg-toro-dark text-toro-light rounded-full py-3.5 px-6 text-sm font-semibold shadow-lg transition hover:bg-[#1f3d00] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 flex items-center justify-center gap-2;
-  }
-  
-  .toro-btn-gold {
-    @apply bg-toro-gold text-toro-light rounded-full py-3.5 px-6 text-sm font-bold shadow-md transition hover:bg-[#b8852d] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 flex items-center justify-center gap-2;
-  }
-  
-  .toro-btn-outline {
-    @apply border border-toro-dark/15 text-toro-dark bg-transparent rounded-full py-3.5 px-6 text-sm font-semibold transition hover:bg-toro-dark/5 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2;
+    @apply
+      bg-toro-dark text-toro-light
+      rounded-full
+      py-3.5 px-6
+      text-sm font-semibold
+      shadow-lg
+      transition
+      hover:bg-[#1f3d00]
+      active:scale-95
+      disabled:opacity-50
+      disabled:cursor-not-allowed
+      disabled:active:scale-100
+      flex items-center justify-center gap-2;
   }
 
-  .toro-empty-state {
-    @apply text-center py-20 px-6 flex flex-col items-center gap-6 border border-toro-dark/10 rounded-[3rem] bg-transparent;
+  /*
+   * Gold accent button — warm gold background, off-white text.
+   * Use for: marketplace CTAs, "Post your service", highlighted actions.
+   */
+  .toro-btn-gold {
+    @apply
+      bg-toro-gold text-toro-light
+      rounded-full
+      py-3.5 px-6
+      text-sm font-bold
+      shadow-md
+      transition
+      hover:bg-[#b8852d]
+      active:scale-95
+      disabled:opacity-50
+      disabled:cursor-not-allowed
+      disabled:active:scale-100
+      flex items-center justify-center gap-2;
   }
+
+  /*
+   * Outline / secondary button — transparent background, thin dark border.
+   * Use for: cancel, secondary actions, back navigation.
+   */
+  .toro-btn-outline {
+    @apply
+      border border-toro-dark/15
+      text-toro-dark
+      bg-transparent
+      rounded-full
+      py-3.5 px-6
+      text-sm font-semibold
+      transition
+      hover:bg-toro-dark/5
+      active:scale-95
+      disabled:opacity-50
+      flex items-center justify-center gap-2;
+  }
+
+  /* ── Empty States ────────────────────────────────────────── */
+
+  /*
+   * Consistent empty state container.
+   * Always pair with: <ToretBull> icon (opacity-15) + text + primary CTA.
+   */
+  .toro-empty-state {
+    @apply
+      text-center py-20 px-6
+      flex flex-col items-center gap-6
+      border border-toro-dark/10
+      rounded-[3rem]
+      bg-transparent;
+  }
+
 }

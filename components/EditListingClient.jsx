@@ -3,16 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-
-const CATEGORIES = [
-  { value: 'tutoring',          label: 'Tutoring' },
-  { value: 'cleaning',          label: 'Cleaning' },
-  { value: 'consular',          label: 'Consular Documents' },
-  { value: 'elderly_care',      label: 'Elderly Care' },
-  { value: 'moving',            label: 'Moving' },
-  { value: 'tech_help',         label: 'Tech Help' },
-  { value: 'language_exchange', label: 'Language Exchange' },
-]
+import { CATEGORIES, PRICE_TYPES } from '@/lib/categories'
 
 const PRICE_TYPES = [
   { value: 'hour',    label: 'per hour' },
@@ -55,19 +46,23 @@ export default function EditListingClient({ listing }) {
       title:       form.title.trim(),
       description: form.description.trim(),
       category:    form.category,
-      price: form.price_type === 'free' ? 0 : (form.price === '' ? null : Number(form.price)),
+      price:       form.price_type === 'free'
+        ? 0
+        : form.price === ''
+          ? null
+          : Number(form.price),
       price_type:  form.price_type,
       location:    form.location.trim(),
       languages:   langs,
     }
 
-    const { error: err } = await supabase
+    const { error: updateError } = await supabase
       .from('listings')
       .update(payload)
       .eq('id', listing.id)
 
-    if (err) {
-      setError(err.message)
+    if (updateError) {
+      setError(updateError.message)
       setLoading(false)
       return
     }
@@ -79,15 +74,11 @@ export default function EditListingClient({ listing }) {
   return (
     <main className="flex-grow bg-toro-light">
       <div className="max-w-2xl mx-auto px-4 py-12">
-        <h1 className="text-3xl font-semibold mb-2 text-toro-dark">
-          Edit listing
-        </h1>
-        <p className="text-sm text-gray-500 mb-8">
-          Changes go live immediately.
-        </p>
+        <h1 className="text-3xl font-semibold mb-2 text-toro-dark">Edit listing</h1>
+        <p className="text-sm text-gray-500 mb-8">Changes go live immediately.</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          {/* Title */}
+
           <Field label="Title">
             <input
               name="title"
@@ -100,7 +91,6 @@ export default function EditListingClient({ listing }) {
             />
           </Field>
 
-          {/* Category */}
           <Field label="Category">
             <select
               name="category"
@@ -116,7 +106,6 @@ export default function EditListingClient({ listing }) {
             </select>
           </Field>
 
-          {/* Description */}
           <Field label={`Description (${form.description.length}/1000)`}>
             <textarea
               name="description"
@@ -130,7 +119,6 @@ export default function EditListingClient({ listing }) {
             />
           </Field>
 
-          {/* Price row */}
           <div className="grid grid-cols-2 gap-4">
             <Field label="Price (€)">
               <input
@@ -142,7 +130,9 @@ export default function EditListingClient({ listing }) {
                 onChange={handleChange}
                 disabled={form.price_type === 'free'}
                 placeholder="0"
-                className={`${inputClass} ${form.price_type === 'free' ? 'opacity-40 cursor-not-allowed bg-gray-50' : ''}`}
+                className={`${inputClass} ${
+                  form.price_type === 'free' ? 'opacity-40 cursor-not-allowed bg-gray-50' : ''
+                }`}
               />
             </Field>
             <Field label="Price type">
@@ -159,7 +149,6 @@ export default function EditListingClient({ listing }) {
             </Field>
           </div>
 
-          {/* Location */}
           <Field label="Location">
             <input
               name="location"
@@ -170,7 +159,6 @@ export default function EditListingClient({ listing }) {
             />
           </Field>
 
-          {/* Languages */}
           <Field label="Languages (comma-separated)">
             <input
               name="languages"

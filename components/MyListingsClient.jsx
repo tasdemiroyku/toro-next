@@ -5,16 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/utils/supabase/client'
-
-const CATEGORY_LABELS = {
-  tutoring: 'Tutoring',
-  cleaning: 'Cleaning',
-  consular: 'Consular Docs',
-  elderly_care: 'Elderly Care',
-  moving: 'Moving',
-  tech_help: 'Tech Help',
-  language_exchange: 'Language Exchange',
-}
+import { CATEGORY_LABEL } from '@/lib/categories'
 
 export default function MyListingsClient({ listings: initial }) {
   const supabase = createClient()
@@ -121,7 +112,7 @@ export default function MyListingsClient({ listings: initial }) {
                     <StatusBadge active={listing.is_active} />
                   </div>
                   <p className="text-xs text-gray-400">
-                    {CATEGORY_LABELS[listing.category] ?? listing.category}
+                    {CATEGORY_LABEL[listing.category] ?? listing.category}
                     {listing.price != null && (
                       <> · €{listing.price}{listing.price_type ? `/${listing.price_type}` : ''}</>
                     )}

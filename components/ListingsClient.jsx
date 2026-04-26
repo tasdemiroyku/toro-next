@@ -4,17 +4,10 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import ToretBull from './ToretBull'
+import { CATEGORIES as BASE_CATEGORIES } from '@/lib/categories'
 
-const CATEGORIES = [
-  { value: "", label: "All" },
-  { value: "tutoring", label: "Tutoring" },
-  { value: "cleaning", label: "Cleaning" },
-  { value: "consular", label: "Consular Docs" },
-  { value: "elderly_care", label: "Elderly Care" },
-  { value: "moving", label: "Moving" },
-  { value: "tech_help", label: "Tech Help" },
-  { value: "language_exchange", label: "Language Exchange" },
-]
+// Prepend the "All" filter option for the browse page
+const CATEGORIES = [{ value: '', label: 'All' }, ...BASE_CATEGORIES]
 
 export default function ListingsClient({ user, initialListings, searchQuery = '' }) {
   const router = useRouter()

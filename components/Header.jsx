@@ -242,8 +242,8 @@ export default function Header({ user: initialUser = null }) {
   }, [])
 
   useEffect(() => {
-    if (mobileOpen) setMobileOpen(false)
-  }, [router])
+    setMobileOpen(false)
+  }, [pathname])
 
   return (
     <>

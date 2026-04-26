@@ -3,17 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-
-const CATEGORY_LABELS = {
-  tutoring: 'Tutoring',
-  cleaning: 'Cleaning',
-  consular: 'Consular Docs',
-  elderly: 'Elderly Care',
-  moving: 'Moving & Delivery',
-  tech: 'Tech Help',
-  language: 'Language Exchange',
-  other: 'Other',
-}
+import { CATEGORY_LABEL } from '@/lib/categories'
 
 export default function ListingDetailClient({ listing: initialListing, profile, user, isOwner }) {
   const router = useRouter()
@@ -83,7 +73,7 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
           {/* Category + title */}
           <div className="flex flex-col gap-2">
             <span className="text-xs font-semibold text-toro-gold uppercase tracking-wide">
-              {CATEGORY_LABELS[listing.category] || listing.category}
+              {CATEGORY_LABEL[listing.category] || listing.category}
             </span>
             <h1 className="text-3xl font-bold text-toro-dark leading-tight">
               {listing.title}
