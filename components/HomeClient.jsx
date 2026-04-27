@@ -63,7 +63,7 @@ export default function HomeClient({ listings }) {
           preload="metadata"
           aria-hidden="true"
         >
-          <source src="/toret-video.mp4" type="video/mp4" />
+          <source src="/toret-video.webm" type="video/webm" />
         </video>
         <div className="absolute inset-0 bg-toro-dark/65 backdrop-blur-[2px]" />
 
@@ -195,10 +195,10 @@ export default function HomeClient({ listings }) {
 
                 <button
                   onClick={() => router.push('/listings/create')}
-                  className="bg-toro-dark text-toro-light px-8 py-3 rounded-full text-sm font-bold hover:bg-[#1f3d00] transition shadow-lg"
-                >
-                  Post a service
-                </button>
+            className="toro-btn-primary px-8"
+          >
+            Post a service
+          </button>
               </motion.div>
             </div>
           )}
@@ -258,12 +258,12 @@ export default function HomeClient({ listings }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSignup()}
-              className="flex-1 border border-toro-dark/20 rounded-full px-5 py-3 text-sm text-toro-dark bg-white focus:outline-none focus:border-toro-gold transition"
+              className="toro-input flex-1"
             />
             <button
               onClick={handleSignup}
               disabled={status === 'loading'}
-              className="bg-toro-gold text-toro-light px-6 py-3 rounded-full font-semibold hover:bg-[#b8852d] transition text-sm whitespace-nowrap disabled:opacity-60"
+              className="toro-btn-gold whitespace-nowrap disabled:opacity-60"
             >
               {status === 'loading' ? 'Saving...' : 'Notify me'}
             </button>

@@ -70,8 +70,10 @@ function isVerifiedStudent(email) {
 
 function memberSince(dateStr) {
   if (!dateStr) return null
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+  return new Date(dateStr).toLocaleDateString('en-GB', {
+    month: 'long',
+    year: 'numeric',
+  })
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
@@ -97,24 +99,41 @@ function Field({ label, children, hint }) {
   )
 }
 
-const inputClass =
-  'w-full bg-white border border-toro-dark/10 rounded-xl px-4 py-3 text-sm text-toro-dark focus:outline-none focus:border-toro-gold/60 focus:ring-2 focus:ring-toro-gold/10 transition placeholder:text-toro-dark/25'
+function Toast({ message, type = 'success' }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 10 }}
+      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full text-sm shadow-lg border ${
+        type === 'error'
+          ? 'bg-red-100 text-red-600 border-red-300'
+          : 'bg-green-100 text-green-700 border-green-300'
+      }`}
+    >
+      {message}
+    </motion.div>
+  )
+}
 
 function LanguageTagSelector({ selected, onChange }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
   useEffect(() => {
-    const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    const handler = e => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const toggle = lang => {
-    onChange(selected.includes(lang)
-      ? selected.filter(l => l !== lang)
-      : [...selected, lang])
-  }
+  const toggle = lang =>
+    onChange(
+      selected.includes(lang)
+        ? selected.filter(l => l !== lang)
+        : [...selected, lang]
+    )
 
   return (
     <div className="flex flex-col gap-2" ref={ref}>
@@ -136,7 +155,8 @@ function LanguageTagSelector({ selected, onChange }) {
                 aria-label={`Remove ${lang}`}
               >
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
               </button>
             </motion.span>
@@ -144,10 +164,11 @@ function LanguageTagSelector({ selected, onChange }) {
         </AnimatePresence>
         <button
           onClick={() => setOpen(o => !o)}
-          className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs border border-dashed border-toro-dark/20 text-toro-dark/40 hover:border-toro-gold/60 hover:text-toro-gold transition"
+          className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs border border-toro-dark/20 text-toro-dark/40 hover:border-toro-gold/60 hover:text-toro-gold transition"
         >
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
           Add
         </button>
@@ -182,21 +203,6 @@ function LanguageTagSelector({ selected, onChange }) {
   )
 }
 
-function Toast({ message, type = 'success' }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 10 }}
-      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full text-sm shadow-lg border ${
-        type === 'error' ? 'bg-red-100 text-red-600 border-red-300' : 'bg-green-100 text-green-700 border-green-300'
-      }`}
-    >
-      {message}
-    </motion.div>
-  )
-}
-
 // ─── Section: Personal Info ──────────────────────────────────────────────────
 
 function PersonalSection({ user, profile, setProfile }) {
@@ -224,8 +230,10 @@ function PersonalSection({ user, profile, setProfile }) {
         skills:       profile.skills,
       })
       .eq('id', user.id)
-
-    showToast(error ? 'Something went wrong.' : 'Profile saved.', error ? 'error' : 'success')
+    showToast(
+      error ? 'Something went wrong.' : 'Profile saved.',
+      error ? 'error' : 'success'
+    )
     setSaving(false)
   }
 
@@ -245,7 +253,7 @@ function PersonalSection({ user, profile, setProfile }) {
             value={profile?.full_name || ''}
             onChange={e => update('full_name', e.target.value)}
             placeholder="Name and surname"
-            className={inputClass}
+            className="toro-input"
           />
         </Field>
         <Field label="Phone number">
@@ -254,7 +262,7 @@ function PersonalSection({ user, profile, setProfile }) {
             value={profile?.phone_number || ''}
             onChange={e => update('phone_number', e.target.value)}
             placeholder="+39 XXX XXX XXXX"
-            className={inputClass}
+            className="toro-input"
           />
         </Field>
       </div>
@@ -266,7 +274,7 @@ function PersonalSection({ user, profile, setProfile }) {
           rows={3}
           maxLength={300}
           placeholder="Tell other students what you can offer or what you're looking for..."
-          className={`${inputClass} resize-none`}
+          className="toro-input !rounded-2xl resize-none"
         />
         <p className="text-xs text-toro-dark/25 text-right -mt-1">
           {(profile?.bio || '').length}/300
@@ -289,7 +297,7 @@ function PersonalSection({ user, profile, setProfile }) {
           value={profile?.skills || ''}
           onChange={e => update('skills', e.target.value)}
           placeholder="Python, Academic writing, Music theory..."
-          className={inputClass}
+          className="toro-input"
         />
       </Field>
 
@@ -297,7 +305,7 @@ function PersonalSection({ user, profile, setProfile }) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex-1 sm:flex-none sm:min-w-[160px] bg-toro-dark text-toro-light rounded-full px-6 py-3 text-sm transition hover:bg-[#1f3d00] active:scale-95 disabled:opacity-50"
+          className="toro-btn-primary sm:min-w-[160px]"
         >
           {saving ? 'Saving…' : 'Save changes'}
         </button>
@@ -311,7 +319,7 @@ function PersonalSection({ user, profile, setProfile }) {
 
       <AnimatePresence>{toast && <Toast {...toast} />}</AnimatePresence>
 
-      {/* Delete modal */}
+      {/* Delete confirmation modal */}
       <AnimatePresence>
         {showDeleteModal && (
           <motion.div
@@ -319,7 +327,9 @@ function PersonalSection({ user, profile, setProfile }) {
             className="fixed inset-0 bg-toro-dark/50 backdrop-blur-sm z-50 flex items-center justify-center px-4"
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
               className="bg-toro-light rounded-3xl p-8 max-w-sm w-full flex flex-col gap-6 shadow-2xl"
             >
               <div className="flex flex-col gap-2 text-center">
@@ -337,7 +347,7 @@ function PersonalSection({ user, profile, setProfile }) {
                 </button>
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="w-full border border-toro-dark/10 text-toro-dark rounded-full py-3 text-sm hover:bg-toro-dark/5 transition"
+                  className="toro-btn-outline w-full"
                 >
                   Cancel
                 </button>
@@ -369,7 +379,10 @@ function AcademicSection({ user, profile, setProfile }) {
       .from('profiles')
       .update({ university: profile.university, department: profile.department })
       .eq('id', user.id)
-    showToast(error ? 'Something went wrong.' : 'Academic info saved.', error ? 'error' : 'success')
+    showToast(
+      error ? 'Something went wrong.' : 'Academic info saved.',
+      error ? 'error' : 'success'
+    )
     setSaving(false)
   }
 
@@ -380,7 +393,7 @@ function AcademicSection({ user, profile, setProfile }) {
           <select
             value={profile?.university || ''}
             onChange={e => update('university', e.target.value)}
-            className={`${inputClass} appearance-none cursor-pointer`}
+            className="toro-input appearance-none cursor-pointer"
           >
             <option value="">Select university</option>
             {UNIVERSITIES.map(({ group, options }) => (
@@ -398,17 +411,17 @@ function AcademicSection({ user, profile, setProfile }) {
             value={profile?.department || ''}
             onChange={e => update('department', e.target.value)}
             placeholder="e.g. Computer Engineering"
-            className={inputClass}
+            className="toro-input"
           />
         </Field>
       </div>
 
-      {/* Email domain verification hint */}
-      <div
-        className={`rounded-2xl p-4 text-sm border ${
-          isVerifiedStudent(user?.email) ? 'bg-green-50 border-green-200' : 'bg-transparent border-toro-dark/10'
-        }`}
-      >
+      {/* Verification status banner */}
+      <div className={`rounded-2xl p-4 text-sm border ${
+        isVerifiedStudent(user?.email)
+          ? 'bg-green-50 border-green-200'
+          : 'bg-transparent border-toro-dark/10'
+      }`}>
         {isVerifiedStudent(user?.email) ? (
           <div className="flex items-center gap-2 text-green-700">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -424,7 +437,8 @@ function AcademicSection({ user, profile, setProfile }) {
               <line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
             <span>
-              Sign up with your university email (e.g. <em>@studenti.polito.it</em>) to receive a Verified Student badge and build trust with other users.
+              Sign up with your university email (e.g. <em>@studenti.polito.it</em>) to receive a
+              Verified Student badge and build trust with other users.
             </span>
           </div>
         )}
@@ -434,7 +448,7 @@ function AcademicSection({ user, profile, setProfile }) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="bg-toro-dark text-toro-light rounded-full px-6 py-3 text-sm transition hover:bg-[#1f3d00] active:scale-95 disabled:opacity-50 min-w-[160px]"
+          className="toro-btn-primary min-w-[160px]"
         >
           {saving ? 'Saving…' : 'Save changes'}
         </button>
@@ -446,136 +460,6 @@ function AcademicSection({ user, profile, setProfile }) {
 }
 
 // ─── Section: Security ───────────────────────────────────────────────────────
-
-function SecuritySection({ user }) {
-  const supabase = createClient()
-  const [emailForm, setEmailForm] = useState({ email: '', confirm: '' })
-  const [passwordForm, setPasswordForm] = useState({ password: '', confirm: '' })
-  const [emailLoading, setEmailLoading] = useState(false)
-  const [passwordLoading, setPasswordLoading] = useState(false)
-  const [toast, setToast] = useState(null)
-
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type })
-    setTimeout(() => setToast(null), 4000)
-  }
-
-  const handleEmailUpdate = async () => {
-    if (!emailForm.email) return showToast('Enter a new email.', 'error')
-    if (emailForm.email !== emailForm.confirm) return showToast("Emails don't match.", 'error')
-    
-    setEmailLoading(true)
-    const { error } = await supabase.auth.updateUser({ email: emailForm.email })
-    showToast(
-      error ? error.message : 'Confirmation sent — check both inboxes.',
-      error ? 'error' : 'success'
-    )
-    if (!error) setEmailForm({ email: '', confirm: '' })
-    setEmailLoading(false)
-  }
-
-  const handlePasswordUpdate = async () => {
-      if (passwordForm.password.length < 8) return showToast('Password must be at least 8 characters.', 'error')
-      if (passwordForm.password !== passwordForm.confirm) return showToast("Passwords don't match.", 'error')
-      
-      setPasswordLoading(true)
-      const { error } = await supabase.auth.updateUser({ password: passwordForm.password })
-      showToast(error ? error.message : 'Password updated successfully.', error ? 'error' : 'success')
-      if (!error) setPasswordForm({ password: '', confirm: '' })
-      setPasswordLoading(false)
-  } 
-
-  return (
-    <div className="flex flex-col gap-8">
-      {/* Current email info */}
-      <div className="rounded-2xl p-4 text-sm flex items-center gap-3 bg-toro-dark/5 border border-toro-dark/10">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-toro-dark/40 shrink-0">
-          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-          <polyline points="22,6 12,13 2,6"/>
-        </svg>
-        <span className="text-toro-dark/50">Current email: <span className="text-toro-dark">{user?.email}</span></span>
-      </div>
-
-      {/* Update email */}
-      <div className="flex flex-col gap-5">
-        <div>
-          <h3 className="text-sm text-toro-dark mb-0.5">Update email</h3>
-          <p className="text-xs text-toro-dark/40">You'll receive a confirmation at both your old and new address.</p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="New email">
-            <input
-              type="email"
-              value={emailForm.email}
-              onChange={e => setEmailForm(f => ({ ...f, email: e.target.value }))}
-              placeholder="new@email.com"
-              className={inputClass}
-            />
-          </Field>
-          <Field label="Confirm new email">
-            <input
-              type="email"
-              value={emailForm.confirm}
-              onChange={e => setEmailForm(f => ({ ...f, confirm: e.target.value }))}
-              placeholder="new@email.com"
-              className={inputClass}
-            />
-          </Field>
-        </div>
-        <button
-          onClick={handleEmailUpdate}
-          disabled={emailLoading}
-          className="self-start bg-toro-dark text-toro-light rounded-full px-6 py-3 text-sm transition hover:bg-[#1f3d00] active:scale-95 disabled:opacity-50 min-w-[160px]"
-        >
-          {emailLoading ? 'Sending…' : 'Update email'}
-        </button>
-      </div>
-
-      <div className="border-t border-toro-dark/10" />
-
-      {/* Update password */}
-      <div className="flex flex-col gap-5">
-        <div>
-          <h3 className="text-sm text-toro-dark mb-0.5">Update password</h3>
-          <p className="text-xs text-toro-dark/40">Min 8 characters. Use uppercase, lowercase, a number and a symbol.</p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="New password">
-            <input
-              type="password"
-              value={passwordForm.password}
-              onChange={e => setPasswordForm(f => ({ ...f, password: e.target.value }))}
-              placeholder="New password"
-              className={inputClass}
-            />
-          </Field>
-          <Field label="Confirm password">
-            <input
-              type="password"
-              value={passwordForm.confirm}
-              onChange={e => setPasswordForm(f => ({ ...f, confirm: e.target.value }))}
-              placeholder="Confirm password"
-              className={inputClass}
-            />
-          </Field>
-        </div>
-        {/* Strength bar */}
-        {passwordForm.password && (
-          <PasswordStrength password={passwordForm.password} />
-        )}
-        <button
-          onClick={handlePasswordUpdate}
-          disabled={passwordLoading}
-          className="self-start bg-toro-dark text-toro-light rounded-full px-6 py-3 text-sm transition hover:bg-[#1f3d00] active:scale-95 disabled:opacity-50 min-w-[160px]"
-        >
-          {passwordLoading ? 'Updating…' : 'Update password'}
-        </button>
-      </div>
-
-      <AnimatePresence>{toast && <Toast {...toast} />}</AnimatePresence>
-    </div>
-  )
-}
 
 function PasswordStrength({ password }) {
   const checks = [
@@ -607,6 +491,144 @@ function PasswordStrength({ password }) {
   )
 }
 
+function SecuritySection({ user }) {
+  const supabase = createClient()
+  const [emailForm, setEmailForm] = useState({ email: '', confirm: '' })
+  const [passwordForm, setPasswordForm] = useState({ password: '', confirm: '' })
+  const [emailLoading, setEmailLoading] = useState(false)
+  const [passwordLoading, setPasswordLoading] = useState(false)
+  const [toast, setToast] = useState(null)
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 4000)
+  }
+
+  const handleEmailUpdate = async () => {
+    if (!emailForm.email) return showToast('Enter a new email.', 'error')
+    if (emailForm.email !== emailForm.confirm) return showToast("Emails don't match.", 'error')
+    setEmailLoading(true)
+    const { error } = await supabase.auth.updateUser({ email: emailForm.email })
+    showToast(
+      error ? error.message : 'Confirmation sent — check both inboxes.',
+      error ? 'error' : 'success'
+    )
+    if (!error) setEmailForm({ email: '', confirm: '' })
+    setEmailLoading(false)
+  }
+
+  const handlePasswordUpdate = async () => {
+    if (passwordForm.password.length < 8)
+      return showToast('Password must be at least 8 characters.', 'error')
+    if (passwordForm.password !== passwordForm.confirm)
+      return showToast("Passwords don't match.", 'error')
+    setPasswordLoading(true)
+    const { error } = await supabase.auth.updateUser({ password: passwordForm.password })
+    showToast(
+      error ? error.message : 'Password updated successfully.',
+      error ? 'error' : 'success'
+    )
+    if (!error) setPasswordForm({ password: '', confirm: '' })
+    setPasswordLoading(false)
+  }
+
+  return (
+    <div className="flex flex-col gap-8">
+      {/* Current email info */}
+      <div className="rounded-2xl p-4 text-sm flex items-center gap-3 bg-toro-dark/5 border border-toro-dark/10">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-toro-dark/40 shrink-0">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+        <span className="text-toro-dark/50">
+          Current email: <span className="text-toro-dark">{user?.email}</span>
+        </span>
+      </div>
+
+      {/* Update email */}
+      <div className="flex flex-col gap-5">
+        <div>
+          <h3 className="text-sm text-toro-dark mb-0.5">Update email</h3>
+          <p className="text-xs text-toro-dark/40">
+            You&apos;ll receive a confirmation at both your old and new address.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="New email">
+            <input
+              type="email"
+              value={emailForm.email}
+              onChange={e => setEmailForm(f => ({ ...f, email: e.target.value }))}
+              placeholder="new@email.com"
+              className="toro-input"
+            />
+          </Field>
+          <Field label="Confirm new email">
+            <input
+              type="email"
+              value={emailForm.confirm}
+              onChange={e => setEmailForm(f => ({ ...f, confirm: e.target.value }))}
+              placeholder="new@email.com"
+              className="toro-input"
+            />
+          </Field>
+        </div>
+        <button
+          onClick={handleEmailUpdate}
+          disabled={emailLoading}
+          className="toro-btn-primary self-start min-w-[160px]"
+        >
+          {emailLoading ? 'Sending…' : 'Update email'}
+        </button>
+      </div>
+
+      <div className="border-t border-toro-dark/10" />
+
+      {/* Update password */}
+      <div className="flex flex-col gap-5">
+        <div>
+          <h3 className="text-sm text-toro-dark mb-0.5">Update password</h3>
+          <p className="text-xs text-toro-dark/40">
+            Min 8 characters. Use uppercase, lowercase, a number and a symbol.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="New password">
+            <input
+              type="password"
+              value={passwordForm.password}
+              onChange={e => setPasswordForm(f => ({ ...f, password: e.target.value }))}
+              placeholder="New password"
+              className="toro-input"
+            />
+          </Field>
+          <Field label="Confirm password">
+            <input
+              type="password"
+              value={passwordForm.confirm}
+              onChange={e => setPasswordForm(f => ({ ...f, confirm: e.target.value }))}
+              placeholder="Confirm password"
+              className="toro-input"
+            />
+          </Field>
+        </div>
+        {passwordForm.password && (
+          <PasswordStrength password={passwordForm.password} />
+        )}
+        <button
+          onClick={handlePasswordUpdate}
+          disabled={passwordLoading}
+          className="toro-btn-primary self-start min-w-[160px]"
+        >
+          {passwordLoading ? 'Updating…' : 'Update password'}
+        </button>
+      </div>
+
+      <AnimatePresence>{toast && <Toast {...toast} />}</AnimatePresence>
+    </div>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ProfileClient({ user, initialProfile }) {
@@ -614,14 +636,15 @@ export default function ProfileClient({ user, initialProfile }) {
   const [activeTab, setActiveTab] = useState('personal')
   const verified = isVerifiedStudent(user?.email)
 
-  const initials = profile?.full_name?.[0]?.toUpperCase()
-    || user?.email?.[0]?.toUpperCase()
-    || '?'
+  const initials =
+    profile?.full_name?.[0]?.toUpperCase() ||
+    user?.email?.[0]?.toUpperCase() ||
+    '?'
 
   const sectionMap = {
     personal: <PersonalSection user={user} profile={profile} setProfile={setProfile} />,
-    academic:  <AcademicSection user={user} profile={profile} setProfile={setProfile} />,
-    security:  <SecuritySection user={user} />,
+    academic: <AcademicSection user={user} profile={profile} setProfile={setProfile} />,
+    security: <SecuritySection user={user} />,
   }
 
   return (
@@ -631,17 +654,13 @@ export default function ProfileClient({ user, initialProfile }) {
       transition={{ duration: 0.35, ease: 'easeOut' }}
       className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24"
     >
-      {/* ── Profile header ── */}
-      <div className="flex flex-col sm:flex-row items-center sm:items-center gap-5 mb-10">
+      {/* Profile header */}
+      <div className="flex flex-col sm:flex-row items-center gap-5 mb-10">
         <div className="relative shrink-0">
-          <div
-            className="w-20 h-20 rounded-full flex items-center justify-center text-toro-light text-2xl shadow-lg bg-toro-dark"
-          >
+          <div className="w-20 h-20 rounded-full flex items-center justify-center text-toro-light text-2xl shadow-lg bg-toro-dark">
             {initials}
           </div>
-          <div
-            className="absolute bottom-0 right-0 w-7 h-7 rounded-full border-2 border-white flex items-center justify-center shadow bg-toro-gold"
-          >
+          <div className="absolute bottom-0 right-0 w-7 h-7 rounded-full border-2 border-white flex items-center justify-center shadow bg-toro-gold">
             <ToretBull className="w-3.5 h-3.5" />
           </div>
         </div>
@@ -662,7 +681,7 @@ export default function ProfileClient({ user, initialProfile }) {
         </div>
       </div>
 
-      {/* ── Layout: sidebar + content ── */}
+      {/* Layout: sidebar + content */}
       <div className="flex flex-col md:flex-row gap-6 md:gap-10">
 
         {/* Sidebar — desktop */}
@@ -672,10 +691,14 @@ export default function ProfileClient({ user, initialProfile }) {
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all text-left ${
-                activeTab === item.id ? 'bg-toro-dark text-toro-light' : 'bg-transparent text-toro-dark/50'
+                activeTab === item.id
+                  ? 'bg-toro-dark text-toro-light'
+                  : 'bg-transparent text-toro-dark/50 hover:text-toro-dark'
               }`}
             >
-              <span className={activeTab === item.id ? 'opacity-100' : 'opacity-60'}>{item.icon}</span>
+              <span className={activeTab === item.id ? 'opacity-100' : 'opacity-60'}>
+                {item.icon}
+              </span>
               {item.label}
             </button>
           ))}
@@ -688,7 +711,9 @@ export default function ProfileClient({ user, initialProfile }) {
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs whitespace-nowrap shrink-0 transition-all ${
-                activeTab === item.id ? 'bg-toro-dark text-toro-light' : 'bg-toro-dark/5 text-toro-dark/60'
+                activeTab === item.id
+                  ? 'bg-toro-dark text-toro-light'
+                  : 'bg-toro-dark/5 text-toro-dark/60 hover:text-toro-dark'
               }`}
             >
               {item.icon}
@@ -704,10 +729,9 @@ export default function ProfileClient({ user, initialProfile }) {
             style={{
               background: 'rgba(255,255,255,0.45)',
               backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)'
+              WebkitBackdropFilter: 'blur(12px)',
             }}
           >
-            {/* Section header */}
             <h2 className="text-xs text-toro-gold uppercase tracking-[0.18em] mb-6">
               {NAV_ITEMS.find(n => n.id === activeTab)?.label}
             </h2>
