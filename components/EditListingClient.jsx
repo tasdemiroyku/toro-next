@@ -19,7 +19,7 @@ export default function EditListingClient({ listing }) {
     languages:   (listing.languages ?? []).join(', '),
   })
   const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState(null)
+  const [error, setError] = useState(null)
 
   function handleChange(e) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -65,14 +65,20 @@ export default function EditListingClient({ listing }) {
   }
 
   return (
-    <main className="flex-grow bg-toro-light">
-      <div className="max-w-2xl mx-auto px-4 py-12">
-        <h1 className="text-3xl font-semibold mb-2 text-toro-dark">Edit listing</h1>
-        <p className="text-sm text-gray-500 mb-8">Changes go live immediately.</p>
+    <div className="min-h-screen bg-toro-light font-sans">
+      <div className="max-w-2xl mx-auto px-8 py-16 flex flex-col gap-8">
+
+        <div>
+          <h1 className="text-3xl font-bold text-toro-dark">Edit listing</h1>
+          <p className="text-sm text-toro-dark/50 mt-1 font-medium">
+            Changes go live immediately.
+          </p>
+        </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
-          <Field label="Title">
+          {/* Title */}
+          <Field label="Title" required>
             <input
               name="title"
               value={form.title}
@@ -80,26 +86,32 @@ export default function EditListingClient({ listing }) {
               maxLength={100}
               required
               placeholder="e.g. Italian grammar for exchange students"
-              className={inputClass}
+              className="toro-input !rounded-2xl"
             />
           </Field>
 
-          <Field label="Category">
-            <select
-              name="category"
-              value={form.category}
-              onChange={handleChange}
-              required
-              className={inputClass}
-            >
-              <option value="" disabled>Select a category</option>
-              {CATEGORIES.map(c => (
-                <option key={c.value} value={c.value}>{c.label}</option>
+          {/* Category */}
+          <Field label="Category" required>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {CATEGORIES.map(cat => (
+                <button
+                  key={cat.value}
+                  type="button"
+                  onClick={() => setForm(prev => ({ ...prev, category: cat.value }))}
+                  className={`py-2.5 px-3 rounded-xl text-xs font-semibold border transition ${
+                    form.category === cat.value
+                      ? 'bg-toro-dark text-toro-light border-toro-dark'
+                      : 'bg-white text-toro-dark border-toro-dark/15 hover:border-toro-gold'
+                  }`}
+                >
+                  {cat.label}
+                </button>
               ))}
-            </select>
+            </div>
           </Field>
 
-          <Field label={`Description (${form.description.length}/1000)`}>
+          {/* Description */}
+          <Field label={`Description (${form.description.length}/1000)`} required>
             <textarea
               name="description"
               value={form.description}
@@ -108,62 +120,78 @@ export default function EditListingClient({ listing }) {
               required
               rows={5}
               placeholder="Describe what you offer, your experience, availability…"
-              className={inputClass}
+              className="toro-input !rounded-2xl resize-none"
             />
           </Field>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Price (€)">
-              <input
-                name="price"
-                type="number"
-                min={0}
-                max={10000}
-                value={form.price_type === 'free' ? '0' : form.price}
-                onChange={handleChange}
-                disabled={form.price_type === 'free'}
-                placeholder="0"
-                className={`${inputClass} ${
-                  form.price_type === 'free' ? 'opacity-40 cursor-not-allowed bg-gray-50' : ''
-                }`}
-              />
-            </Field>
-            <Field label="Price type">
-              <select
-                name="price_type"
-                value={form.price_type}
-                onChange={handleChange}
-                className={inputClass}
-              >
-                {PRICE_TYPES.map(p => (
-                  <option key={p.value} value={p.value}>{p.label}</option>
-                ))}
-              </select>
-            </Field>
+          {/* Price */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-toro-dark/50 uppercase tracking-wide">
+              Price
+            </label>
+            <div className="flex gap-3">
+              <div className="relative flex-1">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-toro-dark/40 font-medium">
+                  €
+                </span>
+                <input
+                  name="price"
+                  type="number"
+                  min={0}
+                  max={10000}
+                  value={form.price_type === 'free' ? '0' : form.price}
+                  onChange={handleChange}
+                  disabled={form.price_type === 'free'}
+                  placeholder="0"
+                  className={`toro-input !rounded-2xl !pl-8 ${
+                    form.price_type === 'free' ? 'opacity-40 cursor-not-allowed' : ''
+                  }`}
+                />
+              </div>
+              <div className="relative w-[150px] shrink-0">
+                <select
+                  name="price_type"
+                  value={form.price_type}
+                  onChange={handleChange}
+                  className="toro-input !rounded-2xl appearance-none cursor-pointer !pr-10"
+                >
+                  {PRICE_TYPES.map(p => (
+                    <option key={p.value} value={p.value}>{p.label}</option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-toro-dark/40">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m6 9 6 6 6-6"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
           </div>
 
+          {/* Location */}
           <Field label="Location">
             <input
               name="location"
               value={form.location}
               onChange={handleChange}
               placeholder="e.g. Vanchiglia, Centro, Online"
-              className={inputClass}
+              className="toro-input !rounded-2xl"
             />
           </Field>
 
-          <Field label="Languages (comma-separated)">
+          {/* Languages */}
+          <Field label="Languages" hint='Comma-separated — e.g. "English, Italian, Turkish"'>
             <input
               name="languages"
               value={form.languages}
               onChange={handleChange}
               placeholder="English, Italian, Turkish"
-              className={inputClass}
+              className="toro-input !rounded-2xl"
             />
           </Field>
 
           {error && (
-            <p className="text-sm text-red-600 rounded-lg bg-red-50 px-4 py-3">
+            <p className="text-sm font-semibold text-red-500 bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
               {error}
             </p>
           )}
@@ -172,34 +200,33 @@ export default function EditListingClient({ listing }) {
             <button
               type="button"
               onClick={() => router.back()}
-              className="flex-1 py-3 rounded-xl border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition"
+              className="flex-1 toro-btn-outline"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-3 rounded-xl text-sm font-medium text-toro-light bg-toro-dark disabled:opacity-60 transition hover:bg-[#1f3d00]"
+              className="flex-1 toro-btn-primary"
             >
               {loading ? 'Saving…' : 'Save changes'}
             </button>
           </div>
         </form>
       </div>
-    </main>
+    </div>
   )
 }
 
-const inputClass =
-  'w-full rounded-lg border border-toro-dark/20 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-toro-dark/20 focus:border-toro-dark transition-colors bg-white'
-
-function Field({ label, children }) {
+function Field({ label, required, hint, children }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+      <label className="text-xs font-semibold text-toro-dark/50 uppercase tracking-wide">
         {label}
+        {required && <span className="text-red-400 ml-1">*</span>}
       </label>
       {children}
+      {hint && <p className="text-xs text-toro-dark/30">{hint}</p>}
     </div>
   )
 }

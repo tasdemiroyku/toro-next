@@ -14,7 +14,7 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.15 } }
 }
 
-export default function HomeClient({ listings }) {
+export default function HomeClient({ user, listings }) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState('idle')
@@ -27,6 +27,10 @@ export default function HomeClient({ listings }) {
       return
     }
     router.push(`/listings?q=${encodeURIComponent(q)}`)
+  }
+
+  const handlePostService = () => {
+    router.push(user ? '/listings/create' : '/login')
   }
 
   const handleSignup = async () => {
@@ -61,9 +65,11 @@ export default function HomeClient({ listings }) {
           loop
           playsInline
           preload="metadata"
+          poster="/torino.jpeg"
           aria-hidden="true"
         >
           <source src="/toret-video.webm" type="video/webm" />
+          {/* Fallback: poster image is shown automatically when video fails */}
         </video>
         <div className="absolute inset-0 bg-toro-dark/65 backdrop-blur-[2px]" />
 
@@ -180,7 +186,7 @@ export default function HomeClient({ listings }) {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-center py-20 px-6 flex flex-col items-center gap-6 border border-toro-dark/10 rounded-[3rem] bg-transparent"
+                className="toro-empty-state"
               >
                 <div className="w-16 h-16 text-toro-dark/15">
                   <ToretBull className="w-full h-full" />
@@ -193,12 +199,9 @@ export default function HomeClient({ listings }) {
                   </p>
                 </div>
 
-                <button
-                  onClick={() => router.push('/listings/create')}
-            className="toro-btn-primary px-8"
-          >
-            Post a service
-          </button>
+                <button onClick={handlePostService} className="toro-btn-primary px-8">
+                  Post a service
+                </button>
               </motion.div>
             </div>
           )}
@@ -241,10 +244,7 @@ export default function HomeClient({ listings }) {
         viewport={{ once: true, amount: 0.3 }}
         variants={stagger}
       >
-        <motion.h2
-          variants={fadeUp}
-          className="text-3xl font-bold text-toro-dark"
-        >
+        <motion.h2 variants={fadeUp} className="text-3xl font-bold text-toro-dark">
           Be the first in Torino
         </motion.h2>
         <motion.p variants={fadeUp} className="text-toro-dark/60 max-w-md">

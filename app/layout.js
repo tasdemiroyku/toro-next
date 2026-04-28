@@ -2,6 +2,7 @@ import { Cormorant_Garamond } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import { createClient } from '@/utils/supabase/server'
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -51,12 +52,17 @@ export const metadata = {
   },
 }
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  // Fetch user server-side so Header renders with correct auth state
+  // immediately — no client-side flicker from logged-out → logged-in.
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   return (
     <html lang="it" className={cormorant.variable}>
       <body className="bg-[#FAFAF7] font-sans antialiased min-h-screen flex flex-col">
-        <Header />
-        
+        <Header user={user} />
+
         <main className="flex-grow">
           {children}
         </main>

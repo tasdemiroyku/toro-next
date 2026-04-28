@@ -52,7 +52,11 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
       .eq('id', listing.id)
       .select()
       .single()
-    if (data) setListing(data)
+    if (data) {
+      setListing(data)
+      // Sync the server cache so navigating away and back reflects the new state
+      router.refresh()
+    }
   }
 
   return (
@@ -112,7 +116,7 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
               <div className="flex gap-3">
                 <button
                   onClick={handleToggleActive}
-                  className="flex-1 border border-toro-dark/15 text-toro-dark rounded-full py-2 text-sm font-semibold hover:bg-white transition"
+                  className="flex-1 toro-btn-outline !py-2 text-sm"
                 >
                   {listing.is_active ? 'Pause listing' : 'Activate listing'}
                 </button>
@@ -155,12 +159,12 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
                       value={message}
                       onChange={e => setMessage(e.target.value)}
                       disabled={!user}
-                      className="w-full border border-toro-dark/15 rounded-xl px-4 py-3 text-sm text-toro-dark focus:outline-none focus:border-toro-gold transition bg-toro-light resize-none disabled:opacity-50"
+                      className="toro-input !rounded-xl resize-none disabled:opacity-50"
                     />
                     <button
                       onClick={() => !user ? router.push('/login') : handleContact()}
                       disabled={sending}
-                      className="w-full bg-toro-dark text-toro-light rounded-full py-3 text-sm font-semibold hover:bg-[#1f3d00] transition disabled:opacity-60"
+                      className="toro-btn-primary w-full disabled:opacity-60"
                     >
                       {!user ? 'Log in to contact' : sending ? 'Sending...' : 'Send message'}
                     </button>
@@ -229,7 +233,7 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="flex-1 border border-toro-dark/15 text-toro-dark rounded-full py-2.5 text-sm font-semibold hover:bg-toro-dark/5 transition"
+                className="flex-1 toro-btn-outline !py-2.5"
               >
                 Cancel
               </button>

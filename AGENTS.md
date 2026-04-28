@@ -43,6 +43,27 @@ components/SomeRouteClient.jsx ← Client Component, receives props, handles UX
 Never fetch data inside a Client Component if it can be done in the parent
 Server Component.
 
+### Middleware — Next.js 16 convention
+
+**⚠ Next.js 16 renamed the middleware file from `middleware.js` to `proxy.js`.**
+
+The middleware entry-point for this project is `proxy.js` at the root.
+It exports a function named `proxy` and a `config` object — both must be
+defined directly in that file (not re-exported from another module, as
+Next.js 16 cannot resolve re-exported configs).
+
+```js
+// proxy.js — correct ✅
+export async function proxy(request) { ... }
+export const config = { matcher: [...] }
+```
+
+**Never create a `middleware.js` file.** Next.js 16 will throw a hard error
+if both files exist simultaneously.
+
+The session helper lives at `utils/supabase/proxy.js` and is imported by
+the root `proxy.js` — do not confuse the two files.
+
 ### File naming
 
 - Pages: `page.jsx` (Next.js App Router convention)
@@ -143,8 +164,7 @@ Every empty state must follow this exact pattern:
 
 ## 5. Security Rules
 
-- **Route protection** lives in `proxy.js` (not `middleware.js` — Next.js 16
-  naming convention).
+- **Route protection** lives in `proxy.js` (Next.js 16 convention — not `middleware.js`).
 - **Defense in depth**: even if `proxy.js` guards a route, Server Component
   pages must also call `getUser()` and redirect if `!user`.
 - **UUID validation** before every parameterized DB query.
@@ -165,6 +185,7 @@ import ... from '../../utils/...'   // Use @/ alias
 const CATEGORIES = [...]            // Import from @/lib/categories
 <div style={{ color: '#132600' }}>  // Use Tailwind tokens
 border border-dashed                // Never dashed borders
+// middleware.js                    // NEVER create this file — Next.js 16 uses proxy.js
 ```
 
 ---
