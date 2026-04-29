@@ -1,13 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import { CATEGORIES, PRICE_TYPES } from '@/lib/categories'
+import { CATEGORIES, PRICE_TYPES, CATEGORY_DEFAULT_IMAGE } from '@/lib/categories'
+import { uploadListingImage, validateImageFile } from '@/utils/upload'
 
 export default function EditListingClient({ listing }) {
   const supabase = createClient()
   const router = useRouter()
+  const fileRef = useRef(null)
 
   const [form, setForm] = useState({
     title:       listing.title       ?? '',
@@ -18,11 +20,44 @@ export default function EditListingClient({ listing }) {
     location:    listing.location    ?? '',
     languages:   (listing.languages ?? []).join(', '),
   })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+
+  // Image state: start with whatever the listing already has
+  const [imageFile, setImageFile]       = useState(null)
+  const [imagePreview, setImagePreview] = useState(listing.image_url ?? null)
+  const [imageError, setImageError]     = useState(null)
+  const [loading, setLoading]           = useState(false)
+  const [error, setError]               = useState(null)
+
+  // The cover to display in the preview area:
+  //   1. New file picked by user (imagePreview = object URL)
+  //   2. Existing uploaded image from the listing
+  //   3. Category default stock photo
+  const displayCover =
+    imagePreview ||
+    CATEGORY_DEFAULT_IMAGE[form.category] ||
+    null
 
   function handleChange(e) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
+  }
+
+  function handleImagePick(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImageError(null)
+    try {
+      validateImageFile(file)
+      setImageFile(file)
+      setImagePreview(URL.createObjectURL(file))
+    } catch (err) {
+      setImageError(err.message)
+    }
+    e.target.value = ''
+  }
+
+  function handleRemoveImage() {
+    setImageFile(null)
+    setImagePreview(null)
   }
 
   async function handleSubmit(e) {
@@ -39,14 +74,30 @@ export default function EditListingClient({ listing }) {
       title:       form.title.trim(),
       description: form.description.trim(),
       category:    form.category,
-      price:       form.price_type === 'free'
-        ? 0
-        : form.price === ''
+      price:
+        form.price_type === 'free'
+          ? 0
+          : form.price === ''
           ? null
           : Number(form.price),
-      price_type:  form.price_type,
-      location:    form.location.trim(),
-      languages:   langs,
+      price_type: form.price_type,
+      location:   form.location.trim(),
+      languages:  langs,
+    }
+
+    // If the user explicitly cleared the image, null it out in DB
+    if (!imagePreview && !imageFile) {
+      payload.image_url = null
+    }
+
+    // Upload new image if one was selected
+    if (imageFile) {
+      try {
+        const url = await uploadListingImage(imageFile, listing.user_id, listing.id)
+        payload.image_url = url
+      } catch {
+        // Non-fatal: save listing without updating image
+      }
     }
 
     const { error: updateError } = await supabase
@@ -77,7 +128,82 @@ export default function EditListingClient({ listing }) {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
-          {/* Title */}
+          {/* ── Cover photo ── */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-toro-dark/50 uppercase tracking-wide">
+              Cover photo
+            </label>
+
+            <div className="relative w-full h-44 rounded-2xl overflow-hidden border border-toro-dark/10 group">
+              {displayCover ? (
+                <>
+                  <img
+                    src={displayCover}
+                    alt="Cover"
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Overlay on hover */}
+                  <div className="absolute inset-0 bg-toro-dark/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      className="bg-white text-toro-dark text-xs font-semibold px-4 py-2 rounded-full hover:bg-toro-light transition"
+                    >
+                      Change
+                    </button>
+                    {/* Only show Remove if there's a real uploaded image (not just a default) */}
+                    {imagePreview && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="bg-red-500 text-white text-xs font-semibold px-4 py-2 rounded-full hover:bg-red-600 transition"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  {/* Default image label */}
+                  {!imagePreview && CATEGORY_DEFAULT_IMAGE[form.category] && (
+                    <div className="absolute bottom-2 left-3">
+                      <span className="text-[10px] font-semibold text-white/70 bg-toro-dark/40 px-2 py-0.5 rounded-full">
+                        Default photo · click to upload yours
+                      </span>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="w-full h-full flex flex-col items-center justify-center gap-2 bg-toro-dark/3 hover:bg-toro-gold/5 hover:border-toro-gold transition border-2 border-dashed border-toro-dark/15 rounded-2xl"
+                >
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-toro-dark/25">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                  <p className="text-xs text-toro-dark/40 font-medium">
+                    Click to add a cover photo
+                  </p>
+                  <p className="text-[10px] text-toro-dark/25">
+                    JPEG, PNG, WebP · max 5 MB
+                  </p>
+                </button>
+              )}
+            </div>
+
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="hidden"
+              onChange={handleImagePick}
+            />
+            {imageError && (
+              <p className="text-xs text-red-500">{imageError}</p>
+            )}
+          </div>
+
+          {/* ── Title ── */}
           <Field label="Title" required>
             <input
               name="title"
@@ -90,7 +216,7 @@ export default function EditListingClient({ listing }) {
             />
           </Field>
 
-          {/* Category */}
+          {/* ── Category ── */}
           <Field label="Category" required>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {CATEGORIES.map(cat => (
@@ -110,7 +236,7 @@ export default function EditListingClient({ listing }) {
             </div>
           </Field>
 
-          {/* Description */}
+          {/* ── Description ── */}
           <Field label={`Description (${form.description.length}/1000)`} required>
             <textarea
               name="description"
@@ -124,7 +250,7 @@ export default function EditListingClient({ listing }) {
             />
           </Field>
 
-          {/* Price */}
+          {/* ── Price ── */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-toro-dark/50 uppercase tracking-wide">
               Price
@@ -168,7 +294,7 @@ export default function EditListingClient({ listing }) {
             </div>
           </div>
 
-          {/* Location */}
+          {/* ── Location ── */}
           <Field label="Location">
             <input
               name="location"
@@ -179,7 +305,7 @@ export default function EditListingClient({ listing }) {
             />
           </Field>
 
-          {/* Languages */}
+          {/* ── Languages ── */}
           <Field label="Languages" hint='Comma-separated — e.g. "English, Italian, Turkish"'>
             <input
               name="languages"

@@ -28,13 +28,14 @@ Production URL: https://toro-next.vercel.app
 toro-next/
 ├── app/
 │   ├── auth/callback/route.js         OAuth callback handler
+│   ├── inbox/page.jsx                 Inbox (Server Component)
 │   ├── listings/
 │   │   ├── [id]/
 │   │   │   ├── page.jsx               Listing detail (Server Component)
 │   │   │   └── edit/page.jsx          Edit listing (Server + Client)
 │   │   ├── create/page.jsx            Create listing (Server + Client)
 │   │   ├── my/page.jsx                User's own listings
-│   │   └── page.jsx                   Browse listings (Server Component)
+│   │   └── page.jsx                   Browse listings (Server Component, paginated)
 │   ├── login/page.jsx                 Auth page (email + OAuth)
 │   ├── profile/page.jsx               User profile (Server Component)
 │   ├── reset-password/page.jsx        Password reset
@@ -42,19 +43,20 @@ toro-next/
 │   ├── layout.js                      Root layout — fetches user server-side, passes to Header
 │   └── page.js                        Home (Server Component)
 ├── components/
-│   ├── CreateListingClient.jsx        Listing creation form
-│   ├── EditListingClient.jsx          Listing edit form
+│   ├── CreateListingClient.jsx        Listing creation form (with image upload)
+│   ├── EditListingClient.jsx          Listing edit form (with image upload + default fallback)
 │   ├── Footer.jsx                     Institutional footer
-│   ├── Header.jsx                     Sticky animated header with search
+│   ├── Header.jsx                     Sticky animated header with search + unread dot
 │   ├── HomeClient.jsx                 Landing page (hero, listings grid)
+│   ├── InboxClient.jsx                Real-time messaging UI (conversation list + thread)
 │   ├── ListingDetailClient.jsx        Detail view + contact form
-│   ├── ListingsClient.jsx             Browse grid + category filters
+│   ├── ListingsClient.jsx             Browse grid + category filters + pagination
 │   ├── MyListingsClient.jsx           Owner's listing management
-│   ├── ProfileClient.jsx              Profile edit (personal/academic/security)
+│   ├── ProfileClient.jsx              Profile edit (personal/academic/security + avatar upload)
 │   ├── ToretBull.jsx                  SVG bull logo component
 │   └── ToroLoader.jsx                 Full-screen loading overlay
 ├── lib/
-│   └── categories.js                  CATEGORIES, CATEGORY_LABEL, PRICE_TYPES, PRICE_TYPE_LABEL
+│   └── categories.js                  CATEGORIES, CATEGORY_LABEL, CATEGORY_DEFAULT_IMAGE, PRICE_TYPES, PRICE_TYPE_LABEL
 ├── utils/
 │   ├── supabase/
 │   │   ├── client.js                  Browser Supabase client
@@ -62,8 +64,10 @@ toro-next/
 │   │   └── proxy.js                   Session update helper used by middleware
 │   └── upload.js                      Image compression + Supabase Storage upload
 ├── supabase/migrations/
-│   ├── rls_policies.sql               RLS policies for profiles/listings/messages
-│   └── storage_setup.sql             toro-uploads bucket + storage policies
+│   ├── rls_policies.sql               RLS for profiles/listings/messages
+│   ├── storage_setup.sql             toro-uploads bucket + storage policies
+│   ├── week2_features.sql            is_verified, image_url, auto-verify trigger
+│   └── fix_messages_fk.sql           Explicit FK names + NOTIFY pgrst reload schema
 ├── proxy.js                           Next.js middleware entry-point (Next.js 16+ convention)
 ├── AGENTS.md                          Universal AI assistant rules
 ├── CLAUDE.md                          This file — Claude's memory bank
@@ -83,6 +87,7 @@ toro-next/
 | phone_number | text | Added Week 1 |
 | university | text | Added Week 1 |
 | department | text | Added Week 1 |
+| is_verified | boolean | Added Week 2 — set server-side by Postgres trigger |
 | created_at | timestamptz | |
 
 ### listings
@@ -98,18 +103,23 @@ toro-next/
 | location | text | |
 | languages | text[] | |
 | is_active | boolean | Default true |
+| image_url | text | Added Week 2 — public URL from toro-uploads |
 | created_at | timestamptz | |
 
 ### messages
 | Column | Type | Notes |
 |---|---|---|
 | id | uuid | Primary key |
-| listing_id | uuid | References listings.id |
-| sender_id | uuid | References profiles.id |
-| receiver_id | uuid | References profiles.id |
+| listing_id | uuid | FK: messages_listing_id_fkey → listings.id CASCADE |
+| sender_id | uuid | FK: messages_sender_id_fkey → profiles.id CASCADE |
+| receiver_id | uuid | FK: messages_receiver_id_fkey → profiles.id CASCADE |
 | content | text | Max 500 chars |
 | read | boolean | Default false, only receiver can update |
 | created_at | timestamptz | |
+
+CRITICAL: FK constraint names must exactly match the above for PostgREST
+to resolve the double-profile join in inbox/page.jsx. If the schema error
+returns, run fix_messages_fk.sql then NOTIFY pgrst, 'reload schema'.
 
 ## Design System Summary
 ### Colors
@@ -129,9 +139,18 @@ Body: font-sans (system sans-serif)
 .toro-empty-state — empty state containers
 .toro-card — card containers
 
+### Cover image fallback pattern
+Every component that renders a listing cover must use:
+```js
+import { CATEGORY_DEFAULT_IMAGE } from '@/lib/categories'
+const cover = listing.image_url || CATEGORY_DEFAULT_IMAGE[listing.category]
+```
+Never show a blank space — always fall back to the category stock photo.
+Default images use free Unsplash Source URLs (no key required).
+
 ## Routing & Auth Architecture
 `proxy.js` at the root is the Next.js middleware entry-point (Next.js 16+ convention). DO NOT create a `middleware.js` file, as it causes a fatal conflict.
-Protected routes: /profile, /listings/create, /listings/my, /listings/[id]/edit
+Protected routes: /profile, /listings/create, /listings/my, /listings/[id]/edit, /inbox
 Pattern: proxy.js redirects to /login?redirectTo={pathname}
 login/page.jsx reads ?redirectTo and ?next params and redirects after login
 OAuth callbacks flow through /auth/callback/route.js which reads ?next
@@ -156,20 +175,33 @@ redirectTo fix: login page correctly redirects to the originally requested route
 .vscode/settings.json — file watcher exclusions for M1 performance
 CLAUDE.md and AGENTS.md written
 
-### Week 2 (Completed — Security & Consistency Pass)
-Critical fix: Established `proxy.js` as the sole middleware file for Next.js 16 compatibility.
-Auth fix: app/layout.js now fetches user server-side and passes it to <Header> — eliminates the logged-out → logged-in flicker on every page load.
-Props fix: HomeClient.jsx now correctly consumes the user prop; the "Post a service" CTA properly redirects unauthenticated users to /login.
-Cache fix: ListingDetailClient.jsx calls router.refresh() after handleToggleActive so navigating away and back reflects the updated state.
-Design fix: MyListingsClient.jsx fully aligned with Toro design system (ToretBull empty state, toro colour tokens, rounded-[2rem] cards, toro buttons).
-Design fix: EditListingClient.jsx replaced private inputClass string with .toro-input, aligned labels, buttons, and error states with design system.
-Design fix: ListingDetailClient.jsx textarea now uses .toro-input.
-Video fallback: HomeClient.jsx hero <video> now has poster="/torino.jpeg" so the background is never blank if the WebM fails to load.
-CLAUDE.md schema updated to include Week 1 profiles columns.
+### Week 2 (Completed)
+Real-time inbox: InboxClient.jsx — conversation list, thread view, optimistic sends, read receipts
+app/inbox/page.jsx — Server Component with explicit FK hints for double-profile join
+is_verified on profiles — Postgres trigger fires on INSERT/UPDATE, checks email domain
+image_url on listings — optional cover photo stored in toro-uploads
+Avatar upload in ProfileClient.jsx via utils/upload.js
+Cover photo upload in CreateListingClient.jsx and EditListingClient.jsx
+CATEGORY_DEFAULT_IMAGE in lib/categories.js — Unsplash fallback per category
+Server-side pagination on /listings (PAGE_SIZE=12, URL params: ?q= ?category= ?page=)
+Verified badge on listing cards (ListingsClient) and detail page (ListingDetailClient)
+Header unread dot — real-time subscription to messages, clears when inbox opened
+fix_messages_fk.sql — dropped and recreated FK constraints with exact PostgREST names
 
 ### Week 3 (Upcoming)
-Messaging UI: inbox page + real-time message thread
-Avatar upload: wire utils/upload.js → ProfileClient.jsx file input
+i18n — next-intl with EN, IT, TR locale files
+
+Report user / listing mechanism (do not forget):
+  - New table: reports (id, reporter_id, target_type TEXT CHECK IN ('listing','user'), target_id uuid, reason text, created_at)
+  - RLS: authenticated users INSERT only; service role reads for admin
+  - UI: "Report this listing" small link in ListingDetailClient sidebar
+  - UI: "Report this user" small link on provider card
+  - On INSERT: Resend email to founders with report details
+  - Admin view: simple password-protected /admin/reports page or Supabase dashboard query
+
+Ratings & reviews — 1-5 stars after a completed service exchange
+Dynamic OG images — next/og per listing for better social sharing
+PWA push notifications — notify receiver of new message without opening the app
 
 ## Known Constraints & Decisions
 No TypeScript (deliberate choice for MVP speed — revisit post-launch)
@@ -177,6 +209,7 @@ Turbopack is enabled via next dev — note it has limited plugin support vs webp
 CATEGORIES values are permanent — renaming requires a SQL UPDATE migration first
 Images are stored in Supabase Storage under toro-uploads, publicly accessible, path-restricted by user ID via RLS
 i18n is planned (EN, IT, TR) but not yet implemented — all UI text is currently English
+Default cover images use Unsplash Source URLs — no API key needed, but rate-limited at scale. Replace with self-hosted CDN assets before public launch.
 
 ## Things I Must Never Do
 Use getSession() anywhere server-side
@@ -189,3 +222,4 @@ Forget router.refresh() after mutations
 Use relative ../ imports more than one level deep
 Disable RLS on any table
 Write custom input styling instead of using .toro-input
+Show a blank cover image — always fall back to CATEGORY_DEFAULT_IMAGE
