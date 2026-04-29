@@ -94,7 +94,7 @@ function LanguageDropdown() {
   )
 }
 
-function UserDropdown({ user, setUser }) {
+function UserDropdown({ user, setUser, hasUnread }) {
   const router = useRouter()
   const { open, setOpen, ref, handleMouseEnter, handleMouseLeave } = useDropdown()
 
@@ -118,13 +118,17 @@ function UserDropdown({ user, setUser }) {
 
       <button
         onClick={() => setOpen(!open)}
-        className="w-9 h-9 rounded-full bg-toro-dark border-2 border-toro-light/20 hover:border-toro-gold transition flex items-center justify-center shrink-0"
+        className="relative w-9 h-9 rounded-full bg-toro-dark border-2 border-toro-light/20 hover:border-toro-gold transition flex items-center justify-center shrink-0"
         aria-label="User menu"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FAFAF7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
           <circle cx="12" cy="7" r="4"/>
         </svg>
+        {/* Unread dot on the avatar icon */}
+        {hasUnread && (
+          <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-toro-gold border-2 border-toro-dark rounded-full z-10" />
+        )}
       </button>
 
       <AnimatePresence>
@@ -146,6 +150,22 @@ function UserDropdown({ user, setUser }) {
             </div>
 
             <div className="py-1">
+              <button
+                onClick={() => { setOpen(false); router.push('/inbox') }}
+                className="w-full text-left px-4 py-2.5 text-sm text-toro-dark hover:bg-toro-dark/5 transition flex items-center justify-between"
+              >
+                <span className="flex items-center gap-2.5">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  Inbox
+                </span>
+                {/* Unread indicator text inside the dropdown */}
+                {hasUnread && (
+                  <span className="w-2 h-2 rounded-full bg-toro-gold animate-pulse" />
+                )}
+              </button>
+
               <button
                 onClick={() => { setOpen(false); router.push('/profile') }}
                 className="w-full text-left px-4 py-2.5 text-sm text-toro-dark hover:bg-toro-dark/5 transition flex items-center gap-2.5"
@@ -208,6 +228,8 @@ export default function Header({ user: initialUser = null }) {
   const [user, setUser] = useState(initialUser)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [headerSearch, setHeaderSearch] = useState('')
+  const [hasUnread, setHasUnread] = useState(false) // 🚨 Unread State Added
+  
   const isHome = pathname === '/'
   const isAuthPage = pathname === '/login'
   const { scrollY } = useScroll()
@@ -233,6 +255,7 @@ export default function Header({ user: initialUser = null }) {
     setHeaderSearch('')
   }
 
+  // Auth State Listener
   useEffect(() => {
     const supabase = createClient()
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -241,9 +264,43 @@ export default function Header({ user: initialUser = null }) {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Close mobile menu on route change
   useEffect(() => {
     setMobileOpen(false)
   }, [pathname])
+
+  // 🚨 Real-time Inbox Listener
+  useEffect(() => {
+    if (!user) {
+      setHasUnread(false)
+      return
+    }
+
+    const supabase = createClient()
+
+    const checkUnread = async () => {
+      const { count } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('receiver_id', user.id)
+        .eq('read', false)
+      
+      setHasUnread(count > 0)
+    }
+
+    checkUnread()
+
+    const channel = supabase.channel('header_unread_check')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` }, () => {
+         setHasUnread(true)
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` }, () => {
+         checkUnread()
+      })
+      .subscribe()
+
+    return () => supabase.removeChannel(channel)
+  }, [user])
 
   return (
     <>
@@ -341,7 +398,7 @@ export default function Header({ user: initialUser = null }) {
             <div className="w-px h-4 bg-toro-light/15 mx-0.5" />
 
             {user ? (
-              <UserDropdown user={user} setUser={setUser} />
+              <UserDropdown user={user} setUser={setUser} hasUnread={hasUnread} />
             ) : (
               <div className="flex items-center gap-5">
                 <button
@@ -361,7 +418,8 @@ export default function Header({ user: initialUser = null }) {
           </div>
 
           <div className="flex md:hidden items-center gap-3">
-            {user && <UserDropdown user={user} setUser={setUser} />}
+            {/* Mobile User Icon Also Shows Unread Dot! */}
+            {user && <UserDropdown user={user} setUser={setUser} hasUnread={hasUnread} />}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="flex flex-col gap-1.5 p-2"

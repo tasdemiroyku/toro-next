@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/utils/supabase/client'
+import { uploadAvatar } from '@/utils/upload'
 import ToretBull from '@/components/ToretBull'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -634,6 +635,11 @@ function SecuritySection({ user }) {
 export default function ProfileClient({ user, initialProfile }) {
   const [profile, setProfile] = useState(initialProfile)
   const [activeTab, setActiveTab] = useState('personal')
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [globalToast, setGlobalToast] = useState(null)
+  
+  const fileInputRef = useRef(null)
+  const supabase = createClient()
   const verified = isVerifiedStudent(user?.email)
 
   const initials =
@@ -647,21 +653,86 @@ export default function ProfileClient({ user, initialProfile }) {
     security: <SecuritySection user={user} />,
   }
 
+  // Handle Avatar Upload
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingAvatar(true)
+    try {
+      const url = await uploadAvatar(file, user.id)
+      if (url) {
+        // Update DB
+        await supabase.from('profiles').update({ avatar_url: url }).eq('id', user.id)
+        // Update UI
+        setProfile(prev => ({ ...prev, avatar_url: url }))
+        setGlobalToast({ message: 'Profile picture updated.', type: 'success' })
+      }
+    } catch (error) {
+      setGlobalToast({ message: 'Failed to upload image.', type: 'error' })
+    } finally {
+      setUploadingAvatar(false)
+      setTimeout(() => setGlobalToast(null), 3000)
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
-      className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24"
+      className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 relative"
     >
+      <AnimatePresence>{globalToast && <Toast {...globalToast} />}</AnimatePresence>
+
       {/* Profile header */}
       <div className="flex flex-col sm:flex-row items-center gap-5 mb-10">
-        <div className="relative shrink-0">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center text-toro-light text-2xl shadow-lg bg-toro-dark">
-            {initials}
-          </div>
-          <div className="absolute bottom-0 right-0 w-7 h-7 rounded-full border-2 border-white flex items-center justify-center shadow bg-toro-gold">
-            <ToretBull className="w-3.5 h-3.5" />
+        
+        {/* ── AVATAR UPLOAD WRAPPER ── */}
+        <div className="relative shrink-0 group">
+          <button
+            onClick={() => !uploadingAvatar && fileInputRef.current?.click()}
+            disabled={uploadingAvatar}
+            className="relative w-20 h-20 rounded-full flex items-center justify-center text-toro-light text-2xl shadow-lg bg-toro-dark overflow-hidden focus:outline-none focus:ring-2 focus:ring-toro-gold transition-transform active:scale-95"
+            aria-label="Upload profile picture"
+          >
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <span>{initials}</span>
+            )}
+
+            {/* Hover overlay (Camera Icon) */}
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+            </div>
+
+            {/* Loading overlay (Spinner) */}
+            {uploadingAvatar && (
+              <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] flex items-center justify-center">
+                <svg className="animate-spin w-7 h-7 text-toro-dark" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.2"/>
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
+            )}
+          </button>
+
+          {/* Hidden File Input */}
+          <input 
+            type="file" 
+            accept="image/*" 
+            className="hidden" 
+            ref={fileInputRef} 
+            onChange={handleAvatarUpload} 
+          />
+
+          {/* ToretBull Gold Badge */}
+          <div className="absolute bottom-0 right-0 w-7 h-7 rounded-full border-2 border-white flex items-center justify-center shadow bg-toro-gold pointer-events-none z-10">
+            <ToretBull className="w-3.5 h-3.5 text-white" />
           </div>
         </div>
 

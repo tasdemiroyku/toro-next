@@ -1,42 +1,67 @@
 'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import ToretBull from './ToretBull'
 import { CATEGORIES as BASE_CATEGORIES } from '@/lib/categories'
 
-// Prepend the "All" filter option for the browse page
 const CATEGORIES = [{ value: '', label: 'All' }, ...BASE_CATEGORIES]
 
-export default function ListingsClient({ user, initialListings, searchQuery = '' }) {
+export default function ListingsClient({
+  user,
+  initialListings,
+  searchQuery = '',
+  activeCategory = '',
+  currentPage = 1,
+  totalPages = 1,
+  totalCount = 0,
+}) {
   const router = useRouter()
-  const [category, setCategory] = useState("")
 
-  const listings = category
-    ? initialListings.filter(l => l.category === category)
-    : initialListings
+  // ── Navigation helpers ────────────────────────────────────────────────────
 
-  const clearSearch = () => router.push('/listings')
+  function buildUrl({ q, category, page }) {
+    const params = new URLSearchParams()
+    const qVal   = q        !== undefined ? q        : searchQuery
+    const catVal = category !== undefined ? category : activeCategory
+    const pgVal  = page     !== undefined ? page     : currentPage
+
+    if (qVal)   params.set('q',        qVal)
+    if (catVal) params.set('category', catVal)
+    if (pgVal > 1) params.set('page',  String(pgVal))
+    const qs = params.toString()
+    return `/listings${qs ? `?${qs}` : ''}`
+  }
+
+  const setCategory = cat =>
+    router.push(buildUrl({ category: cat, page: 1 }))
+
+  const clearSearch = () =>
+    router.push(buildUrl({ q: '', page: 1 }))
+
+  const goToPage = pg =>
+    router.push(buildUrl({ page: pg }))
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="max-w-6xl mx-auto px-6 lg:px-8 pt-6 pb-20">
+    <div className="flex flex-col gap-8">
 
       {/* Top bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-toro-dark">
             Services in Torino
           </h1>
-          {searchQuery && (
-            <p className="text-sm text-toro-dark/50 mt-1">
-              {listings.length} result{listings.length !== 1 ? 's' : ''} for &ldquo;{searchQuery}&rdquo;
-            </p>
-          )}
+          <p className="text-sm text-toro-dark/40 mt-1 font-medium">
+            {searchQuery
+              ? `${totalCount} result${totalCount !== 1 ? 's' : ''} for "${searchQuery}"`
+              : `${totalCount} service${totalCount !== 1 ? 's' : ''} available`}
+          </p>
         </div>
         <button
           onClick={() => router.push(user ? '/listings/create' : '/login')}
-          className="bg-toro-gold text-toro-light px-6 py-2.5 rounded-full text-sm font-bold hover:bg-[#b8852d] transition shadow-sm shrink-0"
+          className="toro-btn-gold shrink-0 !py-2.5 !px-5"
         >
           Post your service
         </button>
@@ -44,7 +69,7 @@ export default function ListingsClient({ user, initialListings, searchQuery = ''
 
       {/* Active search chip */}
       {searchQuery && (
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-2 pl-4 pr-2 py-1.5 bg-toro-dark text-toro-light rounded-full text-sm font-medium">
             &ldquo;{searchQuery}&rdquo;
             <button
@@ -61,14 +86,14 @@ export default function ListingsClient({ user, initialListings, searchQuery = ''
         </div>
       )}
 
-      {/* Category filters */}
-      <div className="flex gap-2.5 flex-wrap mb-10">
+      {/* Category filter chips — server-driven via URL */}
+      <div className="flex gap-2 flex-wrap">
         {CATEGORIES.map(cat => (
           <button
             key={cat.value}
             onClick={() => setCategory(cat.value)}
             className={`px-5 py-2 rounded-full text-xs font-bold border transition-all duration-200 ${
-              category === cat.value
+              activeCategory === cat.value
                 ? 'bg-toro-dark text-toro-light border-toro-dark shadow-md'
                 : 'bg-white text-toro-dark border-toro-dark/10 hover:border-toro-gold hover:bg-toro-gold/5'
             }`}
@@ -79,112 +104,195 @@ export default function ListingsClient({ user, initialListings, searchQuery = ''
       </div>
 
       {/* Listings grid or empty state */}
-      {listings.length === 0 ? (
+      {initialListings.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center py-20 px-6 flex flex-col items-center gap-6 border border-toro-dark/10 rounded-[3rem] bg-transparent"
+          className="toro-empty-state"
         >
           <div className="w-16 h-16 text-toro-dark/15">
             <ToretBull className="w-full h-full" />
           </div>
-
           <div className="flex flex-col gap-1.5">
             <p className="text-toro-dark text-lg font-bold">
-              {searchQuery
-                ? `No results for "${searchQuery}"`
-                : 'No services here yet'}
+              {searchQuery ? `No results for "${searchQuery}"` : 'No services here yet'}
             </p>
             <p className="text-toro-dark/40 text-sm max-w-xs mx-auto font-medium">
               {searchQuery
                 ? 'Try a different keyword or browse all services.'
-                : 'Be the first to offer help in this category to the student community.'}
+                : 'Be the first to offer help in this category.'}
             </p>
           </div>
-
           <div className="flex flex-wrap gap-3 justify-center">
             {searchQuery && (
-              <button
-                onClick={clearSearch}
-                className="border border-toro-dark/15 text-toro-dark px-6 py-3 rounded-full text-sm font-bold hover:bg-toro-dark/5 transition"
-              >
+              <button onClick={clearSearch} className="toro-btn-outline !py-2.5">
                 Browse all services
               </button>
             )}
             <button
               onClick={() => router.push(user ? '/listings/create' : '/login')}
-              className="bg-toro-dark text-toro-light px-8 py-3 rounded-full text-sm font-bold hover:bg-[#1f3d00] transition shadow-lg"
+              className="toro-btn-primary !py-2.5"
             >
               Post your service
             </button>
           </div>
         </motion.div>
       ) : (
-        <motion.div
-          layout
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          <AnimatePresence mode="popLayout">
-            {listings.map(listing => (
-              <motion.div
-                layout
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.2 }}
-                key={listing.id}
-                onClick={() => router.push(`/listings/${listing.id}`)}
-                className="bg-white/40 backdrop-blur-sm border border-toro-dark/10 rounded-[2rem] p-6 flex flex-col gap-3 hover:border-toro-gold hover:shadow-xl hover:bg-white transition-all cursor-pointer group"
-              >
-                <span className="text-[10px] font-black text-toro-gold uppercase tracking-[0.1em] bg-toro-gold/10 w-fit px-2.5 py-1 rounded-lg">
-                  {CATEGORIES.find(c => c.value === listing.category)?.label || listing.category}
-                </span>
-
-                <h2 className="text-lg font-bold text-toro-dark leading-snug group-hover:text-toro-gold transition-colors">
-                  {listing.title}
-                </h2>
-
-                <p className="text-sm text-toro-dark/50 leading-relaxed line-clamp-2">
-                  {listing.description}
-                </p>
-
-                <div className="flex items-center justify-between mt-auto pt-5 border-t border-toro-dark/5">
-                  <div className="flex items-center gap-2.5">
-                    {listing.profiles?.avatar_url ? (
+        <>
+          <motion.div
+            layout
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            <AnimatePresence mode="popLayout">
+              {initialListings.map(listing => (
+                <motion.div
+                  layout
+                  key={listing.id}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={() => router.push(`/listings/${listing.id}`)}
+                  className="bg-white/60 backdrop-blur-sm border border-toro-dark/10 rounded-[2rem] overflow-hidden flex flex-col hover:border-toro-gold hover:shadow-xl hover:bg-white transition-all cursor-pointer group"
+                >
+                  {/* Cover image or placeholder */}
+                  {listing.image_url ? (
+                    <div className="h-40 overflow-hidden">
                       <img
-                        src={listing.profiles.avatar_url}
-                        className="w-7 h-7 rounded-full object-cover border border-toro-dark/10"
-                        alt=""
+                        src={listing.image_url}
+                        alt={listing.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
-                    ) : (
-                      <div className="w-7 h-7 rounded-full bg-toro-dark/10 flex items-center justify-center text-toro-dark text-[10px] font-black border border-toro-dark/10">
-                        {listing.profiles?.full_name?.[0]?.toUpperCase() || "T"}
-                      </div>
-                    )}
-                    <span className="text-xs font-bold text-toro-dark/60 truncate max-w-[100px]">
-                      {listing.profiles?.full_name || "Student"}
-                    </span>
-                  </div>
-
-                  {listing.price === 0 || listing.price_type === 'free' ? (
-                    <span className="text-xs font-black text-[#15803d] bg-[#dcfce7] px-2.5 py-1 rounded-full uppercase">
-                      Free
-                    </span>
+                    </div>
                   ) : (
-                    <span className="text-sm font-black text-toro-dark">
-                      €{listing.price}
-                      {listing.price_type && listing.price_type !== 'fixed' && (
-                        <span className="text-[10px] font-bold text-toro-dark/30 ml-0.5">
-                          /{listing.price_type === 'hour' ? 'hr' : listing.price_type}
+                    <div className="h-32 bg-toro-dark/5 flex items-center justify-center group-hover:bg-toro-dark/8 transition-colors">
+                      <ToretBull className="w-10 h-10 text-toro-dark/10" />
+                    </div>
+                  )}
+
+                  <div className="p-5 flex flex-col gap-3 flex-1">
+                    <span className="text-[10px] font-black text-toro-gold uppercase tracking-[0.1em] bg-toro-gold/10 w-fit px-2.5 py-1 rounded-lg">
+                      {CATEGORIES.find(c => c.value === listing.category)?.label || listing.category}
+                    </span>
+
+                    <h2 className="text-base font-bold text-toro-dark leading-snug group-hover:text-toro-gold transition-colors line-clamp-2">
+                      {listing.title}
+                    </h2>
+
+                    <p className="text-sm text-toro-dark/50 leading-relaxed line-clamp-2 flex-1">
+                      {listing.description}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-toro-dark/5 mt-auto">
+                      <div className="flex items-center gap-2">
+                        {listing.profiles?.avatar_url ? (
+                          <img
+                            src={listing.profiles.avatar_url}
+                            className="w-7 h-7 rounded-full object-cover border border-toro-dark/10"
+                            alt=""
+                          />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full bg-toro-dark/10 flex items-center justify-center text-toro-dark text-[10px] font-black border border-toro-dark/10">
+                            {listing.profiles?.full_name?.[0]?.toUpperCase() || 'T'}
+                          </div>
+                        )}
+                        <div className="flex items-center gap-1 min-w-0">
+                          <span className="text-xs font-bold text-toro-dark/60 truncate max-w-[90px]">
+                            {listing.profiles?.full_name || 'Student'}
+                          </span>
+                          {/* Verified badge on listing card */}
+                          {listing.profiles?.is_verified && (
+                            <span
+                              title="Verified Student"
+                              className="w-3.5 h-3.5 rounded-full bg-green-500 flex items-center justify-center shrink-0"
+                            >
+                              <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M20 6 9 17l-5-5"/>
+                              </svg>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {listing.price === 0 || listing.price_type === 'free' ? (
+                        <span className="text-xs font-black text-[#15803d] bg-[#dcfce7] px-2.5 py-1 rounded-full uppercase">
+                          Free
+                        </span>
+                      ) : (
+                        <span className="text-sm font-black text-toro-dark shrink-0">
+                          €{listing.price}
+                          {listing.price_type && listing.price_type !== 'fixed' && (
+                            <span className="text-[10px] font-bold text-toro-dark/30 ml-0.5">
+                              /{listing.price_type === 'hour' ? 'hr' : listing.price_type}
+                            </span>
+                          )}
                         </span>
                       )}
-                    </span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+
+          {/* Pagination controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-4">
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage <= 1}
+                className="toro-btn-outline !py-2 !px-4 !text-xs disabled:opacity-30"
+                aria-label="Previous page"
+              >
+                ← Prev
+              </button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(pg =>
+                    pg === 1 ||
+                    pg === totalPages ||
+                    Math.abs(pg - currentPage) <= 1
+                  )
+                  .reduce((acc, pg, idx, arr) => {
+                    if (idx > 0 && pg - arr[idx - 1] > 1) {
+                      acc.push('…')
+                    }
+                    acc.push(pg)
+                    return acc
+                  }, [])
+                  .map((item, idx) =>
+                    item === '…' ? (
+                      <span key={`ellipsis-${idx}`} className="px-2 text-toro-dark/30 text-sm">
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={item}
+                        onClick={() => goToPage(item)}
+                        className={`w-9 h-9 rounded-full text-xs font-bold transition-all ${
+                          item === currentPage
+                            ? 'bg-toro-dark text-toro-light shadow-sm'
+                            : 'text-toro-dark/60 hover:bg-toro-dark/8'
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    )
                   )}
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
+              </div>
+
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage >= totalPages}
+                className="toro-btn-outline !py-2 !px-4 !text-xs disabled:opacity-30"
+                aria-label="Next page"
+              >
+                Next →
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

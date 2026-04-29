@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { updateSession } from './utils/supabase/proxy'
 
-const PROTECTED_ROUTES = ['/profile', '/listings/create', '/listings/my']
+const PROTECTED_ROUTES = ['/profile', '/listings/create', '/listings/my', '/inbox']
 
 export async function proxy(request) {
   const { supabaseResponse, user } = await updateSession(request)
