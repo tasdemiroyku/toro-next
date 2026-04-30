@@ -18,7 +18,6 @@ function groupConversations(messages, currentUserId) {
   for (const msg of messages) {
     const otherId =
       msg.sender_id === currentUserId ? msg.receiver_id : msg.sender_id
-    // Sort IDs so A→B and B→A produce the same key
     const key = `${msg.listing_id}::${[currentUserId, otherId].sort().join(':')}`
 
     if (!map.has(key)) {
@@ -36,7 +35,6 @@ function groupConversations(messages, currentUserId) {
     }
 
     const conv = map.get(key)
-    // Messages arrive newest-first; push maintains that order for grouping
     conv.messages.push(msg)
 
     if (!msg.read && msg.receiver_id === currentUserId) {
@@ -65,8 +63,7 @@ function formatTime(dateStr) {
 
 function Avatar({ profile, size = 'md' }) {
   const dim = size === 'sm' ? 'w-8 h-8 text-xs' : 'w-10 h-10 text-sm'
-  const initial =
-    profile?.full_name?.[0]?.toUpperCase() || '?'
+  const initial = profile?.full_name?.[0]?.toUpperCase() || '?'
 
   if (profile?.avatar_url) {
     return (
@@ -91,20 +88,29 @@ function Avatar({ profile, size = 'md' }) {
 function ThreadView({ conversation, currentUserId, onBack, onNewMessage }) {
   const supabase = createClient()
   const [messages, setMessages] = useState(
-    // Thread messages sorted oldest-first for display
     [...conversation.messages].sort(
       (a, b) => new Date(a.created_at) - new Date(b.created_at)
     )
   )
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
-  const bottomRef = useRef(null)
+  const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
 
-  // Scroll to bottom whenever messages change
+  // ── Scroll to bottom within the container only (block: 'nearest') ──
+  // block: 'nearest' prevents the browser from scrolling the outer window.
+  const scrollToBottom = useCallback((behavior = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior, block: 'nearest' })
+  }, [])
+
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    scrollToBottom()
+  }, [messages, scrollToBottom])
+
+  // Jump instantly to bottom on first open (no animation flash)
+  useEffect(() => {
+    scrollToBottom('instant')
+  }, [conversation.key, scrollToBottom])
 
   // Mark unread messages as read when thread opens
   useEffect(() => {
@@ -120,12 +126,10 @@ function ThreadView({ conversation, currentUserId, onBack, onNewMessage }) {
       .in('id', unreadIds)
       .then(() => {
         setMessages(prev =>
-          prev.map(m =>
-            unreadIds.includes(m.id) ? { ...m, read: true } : m
-          )
+          prev.map(m => unreadIds.includes(m.id) ? { ...m, read: true } : m)
         )
       })
-  }, [conversation.key])
+  }, [conversation.key]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Real-time subscription for incoming messages in this thread
   useEffect(() => {
@@ -141,14 +145,12 @@ function ThreadView({ conversation, currentUserId, onBack, onNewMessage }) {
         },
         payload => {
           const msg = payload.new
-          // Only add if it belongs to this conversation
           if (
             msg.listing_id === conversation.listingId &&
             msg.sender_id === conversation.otherId
           ) {
             const enriched = {
               ...msg,
-              // Mark read immediately since thread is open
               read: true,
               sender: conversation.otherProfile,
               receiver: { id: currentUserId },
@@ -156,18 +158,14 @@ function ThreadView({ conversation, currentUserId, onBack, onNewMessage }) {
             }
             setMessages(prev => [...prev, enriched])
             onNewMessage(enriched)
-            // Mark as read in DB
-            supabase
-              .from('messages')
-              .update({ read: true })
-              .eq('id', msg.id)
+            supabase.from('messages').update({ read: true }).eq('id', msg.id)
           }
         }
       )
       .subscribe()
 
     return () => supabase.removeChannel(channel)
-  }, [conversation.key])
+  }, [conversation.key]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSend = async () => {
     const content = input.trim()
@@ -176,7 +174,6 @@ function ThreadView({ conversation, currentUserId, onBack, onNewMessage }) {
     setSending(true)
     setInput('')
 
-    // Optimistic UI
     const optimistic = {
       id: `optimistic-${Date.now()}`,
       listing_id: conversation.listingId,
@@ -204,13 +201,11 @@ function ThreadView({ conversation, currentUserId, onBack, onNewMessage }) {
       .single()
 
     if (error) {
-      // Remove optimistic message on failure
       setMessages(prev => prev.filter(m => m.id !== optimistic.id))
       setInput(content)
     } else {
-      // Replace optimistic with real message
       setMessages(prev =>
-        prev.map(m => (m.id === optimistic.id ? { ...optimistic, ...data } : m))
+        prev.map(m => m.id === optimistic.id ? { ...optimistic, ...data } : m)
       )
       onNewMessage({ ...optimistic, ...data })
     }
@@ -220,8 +215,11 @@ function ThreadView({ conversation, currentUserId, onBack, onNewMessage }) {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Thread header */}
+    // ── This flex column must fill the parent height exactly ──
+    // The parent (.flex-1.flex.flex-col.min-h-0) provides the constraint.
+    <div className="flex flex-col h-full min-h-0">
+
+      {/* Thread header — fixed height, never grows */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-toro-dark/10 bg-white shrink-0">
         <button
           onClick={onBack}
@@ -243,8 +241,9 @@ function ThreadView({ conversation, currentUserId, onBack, onNewMessage }) {
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2">
+      {/* Messages list — THIS is the only element that scrolls ──────────── */}
+      {/* overflow-y-auto + flex-1 + min-h-0 together prevent parent overflow */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 flex flex-col gap-2">
         {messages.map((msg, i) => {
           const isMe = msg.sender_id === currentUserId
           const showDate =
@@ -279,11 +278,7 @@ function ThreadView({ conversation, currentUserId, onBack, onNewMessage }) {
                   } ${msg._optimistic ? 'opacity-70' : ''}`}
                 >
                   {msg.content}
-                  <div
-                    className={`text-[10px] mt-1 ${
-                      isMe ? 'text-toro-light/40' : 'text-toro-dark/30'
-                    }`}
-                  >
+                  <div className={`text-[10px] mt-1 ${isMe ? 'text-toro-light/40' : 'text-toro-dark/30'}`}>
                     {formatTime(msg.created_at)}
                     {isMe && (
                       <span className="ml-1.5">
@@ -296,10 +291,11 @@ function ThreadView({ conversation, currentUserId, onBack, onNewMessage }) {
             </div>
           )
         })}
-        <div ref={bottomRef} />
+        {/* Scroll anchor */}
+        <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
+      {/* Input — fixed height at bottom, never grows the container ──────── */}
       <div className="shrink-0 px-4 py-3 border-t border-toro-dark/10 bg-white">
         <div className="flex items-end gap-2">
           <textarea
@@ -395,14 +391,12 @@ export default function InboxClient({
   const [messages, setMessages] = useState(initialMessages)
   const conversations = groupConversations(messages, currentUserId)
 
-  // Find the active conversation from URL params
   const activeConv = conversations.find(
     c =>
       c.listingId === activeListingId &&
       c.otherId === activeWithUserId
   ) ?? null
 
-  // On mobile, when a conversation is active, show only thread
   const [mobileShowThread, setMobileShowThread] = useState(!!activeConv)
 
   const selectConversation = useCallback(
@@ -434,38 +428,44 @@ export default function InboxClient({
           filter: `receiver_id=eq.${currentUserId}`,
         },
         payload => {
-          // Add to flat message list — ThreadView handles deduplication
           setMessages(prev => [payload.new, ...prev])
         }
       )
       .subscribe()
 
     return () => supabase.removeChannel(channel)
-  }, [currentUserId])
+  }, [currentUserId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleNewMessage = useCallback(msg => {
     setMessages(prev => {
       const exists = prev.some(m => m.id === msg.id)
-      return exists ? prev.map(m => (m.id === msg.id ? msg : m)) : [msg, ...prev]
+      return exists ? prev.map(m => m.id === msg.id ? msg : m) : [msg, ...prev]
     })
   }, [])
 
   const totalUnread = conversations.reduce((sum, c) => sum + c.unreadCount, 0)
 
   return (
-    <div className="flex flex-col flex-grow bg-toro-light font-sans">
-      <div className="max-w-6xl mx-auto w-full flex-1 flex flex-col px-0 sm:px-4 lg:px-8 py-0 sm:py-6">
-        <div className="flex-1 flex bg-white sm:rounded-[2rem] overflow-hidden border border-toro-dark/10 shadow-sm"
-          style={{ minHeight: 'calc(100vh - 180px)' }}
-        >
+    // ── SCROLL FIX: Give the inbox a fixed viewport height so nothing below it
+    //   can push the page down. The header is 72 px tall (from Header.jsx).
+    //   Using 100dvh handles mobile browser chrome correctly.
+    <div
+      className="flex flex-col bg-toro-light font-sans overflow-hidden"
+      style={{ height: 'calc(100dvh - 72px)' }}
+    >
+      {/* Inner max-width wrapper — must be flex col and fill the fixed height */}
+      <div className="max-w-6xl mx-auto w-full flex flex-col flex-1 min-h-0 px-0 sm:px-4 lg:px-8 py-0 sm:py-6">
+
+        {/* The actual panel grid — overflow-hidden clips any accidental overflow */}
+        <div className="flex flex-1 min-h-0 bg-white sm:rounded-[2rem] overflow-hidden border border-toro-dark/10 shadow-sm">
 
           {/* ── Conversation List (left panel) ── */}
           <div
-            className={`w-full sm:w-80 lg:w-96 shrink-0 border-r border-toro-dark/10 flex flex-col ${
+            className={`w-full sm:w-80 lg:w-96 shrink-0 border-r border-toro-dark/10 flex flex-col min-h-0 ${
               mobileShowThread ? 'hidden sm:flex' : 'flex'
             }`}
           >
-            {/* List header */}
+            {/* List header — shrink-0 so it never collapses */}
             <div className="px-5 py-4 border-b border-toro-dark/10 shrink-0">
               <div className="flex items-center justify-between">
                 <h1 className="text-xl font-bold text-toro-dark">Messages</h1>
@@ -477,8 +477,8 @@ export default function InboxClient({
               </div>
             </div>
 
-            {/* Conversation list */}
-            <div className="flex-1 overflow-y-auto divide-y divide-toro-dark/5">
+            {/* Conversation list — the only scrollable section in the left panel */}
+            <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-toro-dark/5">
               {conversations.length === 0 ? (
                 <div className="toro-empty-state !border-0 !rounded-none py-16">
                   <div className="w-14 h-14 text-toro-dark/10">
@@ -514,8 +514,9 @@ export default function InboxClient({
           </div>
 
           {/* ── Thread View (right panel) ── */}
+          {/* min-h-0 is critical: without it flex-1 can grow past the container */}
           <div
-            className={`flex-1 flex flex-col min-w-0 ${
+            className={`flex-1 min-h-0 flex flex-col ${
               !mobileShowThread ? 'hidden sm:flex' : 'flex'
             }`}
           >
@@ -527,7 +528,7 @@ export default function InboxClient({
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="flex flex-col h-full"
+                  className="flex flex-col flex-1 min-h-0"
                 >
                   <ThreadView
                     conversation={activeConv}
@@ -546,11 +547,9 @@ export default function InboxClient({
                   <div className="w-16 h-16 text-toro-dark/10">
                     <ToretBull className="w-full h-full" />
                   </div>
-                  <div>
-                    <p className="text-toro-dark/50 text-sm font-medium">
-                      Select a conversation to read messages
-                    </p>
-                  </div>
+                  <p className="text-toro-dark/50 text-sm font-medium">
+                    Select a conversation to read messages
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>

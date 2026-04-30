@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import ToretBull from './ToretBull'
+import { CATEGORY_DEFAULT_IMAGE } from '@/lib/categories'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -69,7 +70,6 @@ export default function HomeClient({ user, listings }) {
           aria-hidden="true"
         >
           <source src="/toret-video.webm" type="video/webm" />
-          {/* Fallback: poster image is shown automatically when video fails */}
         </video>
         <div className="absolute inset-0 bg-toro-dark/65 backdrop-blur-[2px]" />
 
@@ -140,47 +140,62 @@ export default function HomeClient({ user, listings }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {listings?.length > 0 ? (
-            listings.map((item) => (
-              <motion.div
-                key={item.id}
-                variants={fadeUp}
-                className="flex flex-col bg-white border border-toro-dark/5 rounded-[2rem] overflow-hidden hover:border-toro-gold/30 hover:shadow-2xl transition-all duration-300 cursor-pointer group p-2"
-                onClick={() => router.push(`/listings/${item.id}`)}
-              >
-                <div className="h-32 bg-toro-dark/5 rounded-[1.5rem] relative flex items-center justify-center group-hover:bg-toro-dark/10 transition-colors">
-                  <div className="absolute top-4 right-4 bg-white px-3 py-1.5 rounded-full text-[13px] font-black text-toro-dark shadow-sm">
-                    €{item.price}<span className="text-[10px] opacity-40 ml-0.5">/{item.price_type === 'hour' ? 'hr' : 'job'}</span>
-                  </div>
-                  <ToretBull className="w-12 h-12 text-toro-dark opacity-5" />
-                </div>
+            listings.map((item) => {
+              // ── Cover: uploaded photo → category default → null ──
+              const cover = item.image_url || CATEGORY_DEFAULT_IMAGE[item.category] || null
 
-                <div className="p-4 flex flex-col gap-3">
-                  <h3 className="text-toro-dark text-lg font-bold leading-tight group-hover:text-toro-gold transition-colors line-clamp-2 min-h-[50px]">
-                    {item.title}
-                  </h3>
-
-                  <div className="flex items-center justify-between mt-2 pt-4 border-t border-toro-dark/5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-toro-dark/5 flex items-center justify-center overflow-hidden border border-toro-dark/10">
-                        {item.profiles?.avatar_url ? (
-                          <img src={item.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-[10px] font-bold text-toro-dark/30">{item.profiles?.full_name?.[0] || 'T'}</span>
-                        )}
-                      </div>
-                      <span className="text-[11px] text-toro-dark/50 font-bold uppercase tracking-tight truncate max-w-[100px]">
-                        {item.profiles?.full_name || 'Torino Student'}
-                      </span>
-                    </div>
-                    {item.location && (
-                      <span className="text-[10px] text-toro-gold font-bold bg-toro-gold/5 px-2 py-0.5 rounded-md truncate max-w-[80px]">
-                        {item.location}
-                      </span>
+              return (
+                <motion.div
+                  key={item.id}
+                  variants={fadeUp}
+                  className="flex flex-col bg-white border border-toro-dark/5 rounded-[2rem] overflow-hidden hover:border-toro-gold/30 hover:shadow-2xl transition-all duration-300 cursor-pointer group p-2"
+                  onClick={() => router.push(`/listings/${item.id}`)}
+                >
+                  {/* Cover image or placeholder */}
+                  <div className="h-32 rounded-[1.5rem] relative overflow-hidden flex items-center justify-center bg-toro-dark/5 group-hover:bg-toro-dark/10 transition-colors">
+                    {cover ? (
+                      <img
+                        src={cover}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <ToretBull className="w-12 h-12 text-toro-dark opacity-5" />
                     )}
+                    {/* Price badge — always visible on top of cover */}
+                    <div className="absolute top-3 right-3 bg-white px-3 py-1.5 rounded-full text-[13px] font-black text-toro-dark shadow-sm">
+                      €{item.price}<span className="text-[10px] opacity-40 ml-0.5">/{item.price_type === 'hour' ? 'hr' : 'job'}</span>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))
+
+                  <div className="p-4 flex flex-col gap-3">
+                    <h3 className="text-toro-dark text-lg font-bold leading-tight group-hover:text-toro-gold transition-colors line-clamp-2 min-h-[50px]">
+                      {item.title}
+                    </h3>
+
+                    <div className="flex items-center justify-between mt-2 pt-4 border-t border-toro-dark/5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-toro-dark/5 flex items-center justify-center overflow-hidden border border-toro-dark/10">
+                          {item.profiles?.avatar_url ? (
+                            <img src={item.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-[10px] font-bold text-toro-dark/30">{item.profiles?.full_name?.[0] || 'T'}</span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-toro-dark/50 font-bold uppercase tracking-tight truncate max-w-[100px]">
+                          {item.profiles?.full_name || 'Torino Student'}
+                        </span>
+                      </div>
+                      {item.location && (
+                        <span className="text-[10px] text-toro-gold font-bold bg-toro-gold/5 px-2 py-0.5 rounded-md truncate max-w-[80px]">
+                          {item.location}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )
+            })
           ) : (
             <div className="col-span-full">
               <motion.div

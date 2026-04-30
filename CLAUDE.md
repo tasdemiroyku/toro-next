@@ -47,10 +47,10 @@ toro-next/
 │   ├── EditListingClient.jsx          Listing edit form (with image upload + default fallback)
 │   ├── Footer.jsx                     Institutional footer
 │   ├── Header.jsx                     Sticky animated header with search + unread dot
-│   ├── HomeClient.jsx                 Landing page (hero, listings grid)
-│   ├── InboxClient.jsx                Real-time messaging UI (conversation list + thread)
-│   ├── ListingDetailClient.jsx        Detail view + contact form
-│   ├── ListingsClient.jsx             Browse grid + category filters + pagination
+│   ├── HomeClient.jsx                 Landing page (hero, listings grid with cover images)
+│   ├── InboxClient.jsx                Real-time messaging UI (fixed-height, no window scroll)
+│   ├── ListingDetailClient.jsx        Detail view + cover image + contact form
+│   ├── ListingsClient.jsx             Browse grid + category filters + pagination + cover images
 │   ├── MyListingsClient.jsx           Owner's listing management
 │   ├── ProfileClient.jsx              Profile edit (personal/academic/security + avatar upload)
 │   ├── ToretBull.jsx                  SVG bull logo component
@@ -143,10 +143,17 @@ Body: font-sans (system sans-serif)
 Every component that renders a listing cover must use:
 ```js
 import { CATEGORY_DEFAULT_IMAGE } from '@/lib/categories'
-const cover = listing.image_url || CATEGORY_DEFAULT_IMAGE[listing.category]
+const cover = listing.image_url || CATEGORY_DEFAULT_IMAGE[listing.category] || null
 ```
 Never show a blank space — always fall back to the category stock photo.
 Default images use free Unsplash Source URLs (no key required).
+
+### Inbox scroll pattern
+InboxClient uses a fixed-height outer wrapper (`height: calc(100dvh - 72px)`) so
+the inbox never pushes the page. All flex children in the chain carry `min-h-0`
+to prevent flex overflow. The messages list div uses `overflow-y-auto` + `flex-1`
++ `min-h-0`. `scrollIntoView` is called with `block: 'nearest'` to target only
+the container, never the window.
 
 ## Routing & Auth Architecture
 `proxy.js` at the root is the Next.js middleware entry-point (Next.js 16+ convention). DO NOT create a `middleware.js` file, as it causes a fatal conflict.
@@ -188,20 +195,89 @@ Verified badge on listing cards (ListingsClient) and detail page (ListingDetailC
 Header unread dot — real-time subscription to messages, clears when inbox opened
 fix_messages_fk.sql — dropped and recreated FK constraints with exact PostgREST names
 
-### Week 3 (Upcoming)
-i18n — next-intl with EN, IT, TR locale files
+### Week 3 (Completed)
+Bug fix — Default images: ListingsClient, HomeClient, ListingDetailClient now all
+  correctly import CATEGORY_DEFAULT_IMAGE and use the pattern:
+  `const cover = listing.image_url || CATEGORY_DEFAULT_IMAGE[listing.category] || null`
+Bug fix — Inbox scroll: InboxClient outer wrapper changed from flex-grow to fixed
+  `height: calc(100dvh - 72px)` with overflow-hidden. All flex children carry
+  min-h-0. Messages list uses overflow-y-auto + flex-1 + min-h-0. scrollIntoView
+  uses block: 'nearest' so only the message container scrolls, never the window.
+  ThreadView: added instant scroll-to-bottom on conversation open, smooth scroll
+  on new messages. Removed stale minHeight style that was causing the panel to
+  grow past the viewport.
 
-Report user / listing mechanism (do not forget):
-  - New table: reports (id, reporter_id, target_type TEXT CHECK IN ('listing','user'), target_id uuid, reason text, created_at)
-  - RLS: authenticated users INSERT only; service role reads for admin
-  - UI: "Report this listing" small link in ListingDetailClient sidebar
-  - UI: "Report this user" small link on provider card
-  - On INSERT: Resend email to founders with report details
-  - Admin view: simple password-protected /admin/reports page or Supabase dashboard query
+## Week 4 Roadmap (Next Up)
+### Usernames & Public Profiles (HIGH PRIORITY)
+- SQL: add unique `username` column to profiles (text, unique, not null after migration)
+- New route: `app/u/[username]/page.jsx` — public profile page showing bio,
+  languages, skills, university, and all active listings for that user
+- ProfileClient.jsx: add username field to Personal Info section with live
+  availability check (debounced Supabase query)
+- AGENTS.md rule: username must be lowercase alphanumeric + underscores only,
+  3–30 chars
 
-Ratings & reviews — 1-5 stars after a completed service exchange
-Dynamic OG images — next/og per listing for better social sharing
-PWA push notifications — notify receiver of new message without opening the app
+### Unified Search Engine
+- Upgrade header search to query BOTH listings and users
+- New API route or server action: searches listings (title/description) and
+  profiles (username/full_name) simultaneously
+- Results page shows two sections: "Services" and "People"
+- Use Supabase full-text search (`to_tsvector`) for better relevance
+
+### Torino Neighbourhood Filter
+- Add `neighbourhood` column to listings (text, nullable)
+- Replace free-text location input with a select dropdown in
+  CreateListingClient and EditListingClient
+- Canonical list: Crocetta, San Salvario, Vanchiglia, Centro Storico,
+  Lingotto, Barriera di Milano, Aurora, Borgo Po, Santa Rita, Mirafiori Nord,
+  Mirafiori Sud, Pozzo Strada, Libero (free input fallback)
+- ListingsClient: add neighbourhood chips below category chips in the filter bar
+- proxy.js: add `?neighbourhood=` to URL params (same pattern as `?category=`)
+
+### Report User / Listing (Safety)
+- SQL: new table `reports` (id, reporter_id, target_type TEXT CHECK IN
+  ('listing','user'), target_id uuid, reason text, created_at)
+- RLS: authenticated users INSERT only; service role reads for admin review
+- UI: small "Report" link in ListingDetailClient sidebar + provider card
+- On INSERT: Resend email to founders with full report details
+- Simple admin view: /admin/reports (password-protected) or Supabase dashboard query
+
+## Week 5 Roadmap (Community Features)
+### Favorites / Saved Listings
+- SQL: new table `saved_listings` (user_id, listing_id, saved_at — composite PK)
+- UI: heart icon on every listing card (ListingsClient, HomeClient) and on the
+  detail page header
+- Optimistic toggle with Supabase upsert / delete
+- New tab "Saved" on ProfileClient showing the user's saved listings grid
+
+### WhatsApp & Social Share Buttons
+- On ListingDetailClient sidebar: share row with WhatsApp, Telegram, copy-link
+- WhatsApp deep link: `https://wa.me/?text=Check+out+this+service+on+Toro:+{url}`
+- Copy-link uses navigator.clipboard with a brief "Copied!" toast
+
+### Image Sharing in Inbox
+- Allow users to send a single image per message (photo of a document, etc.)
+- Extend messages table: add `image_url text nullable`
+- ThreadView: add a paperclip icon button next to the textarea
+- On pick: validate + compress via utils/upload.js, upload to
+  `toro-uploads/messages/{listingId}/{senderId}/{uuid}.webp`
+- Display inline in the message bubble with a max-h-48 rounded image
+
+### Reverse Marketplace (Service Requests Board)
+- New table `requests` mirroring listings schema but with `request` type
+- New route `/requests` — "I need something" board
+- New route `/requests/create` — form: title, category, budget, location, deadline
+- Listing providers can message the requester directly
+- HomeClient: add a second row below Latest Services showing Latest Requests
+
+### Trust & Status Badges
+- `last_seen_at` timestamp on profiles, updated on every authenticated page visit
+  via a lightweight server action (fire-and-forget)
+- "Online Now" badge: shown if last_seen_at < 10 minutes ago
+- "Fast Responder" badge: shown if median reply time < 2 hours (computed weekly
+  via Postgres function)
+- "New Member" badge: shown if created_at > 30 days ago
+- Badges displayed on listing cards, detail page provider card, and public profile
 
 ## Known Constraints & Decisions
 No TypeScript (deliberate choice for MVP speed — revisit post-launch)
@@ -210,6 +286,7 @@ CATEGORIES values are permanent — renaming requires a SQL UPDATE migration fir
 Images are stored in Supabase Storage under toro-uploads, publicly accessible, path-restricted by user ID via RLS
 i18n is planned (EN, IT, TR) but not yet implemented — all UI text is currently English
 Default cover images use Unsplash Source URLs — no API key needed, but rate-limited at scale. Replace with self-hosted CDN assets before public launch.
+Inbox outer wrapper uses 72px as the header offset — if the header height ever changes (e.g. on mobile), update the calc() in InboxClient.jsx accordingly.
 
 ## Things I Must Never Do
 Use getSession() anywhere server-side
@@ -223,3 +300,5 @@ Use relative ../ imports more than one level deep
 Disable RLS on any table
 Write custom input styling instead of using .toro-input
 Show a blank cover image — always fall back to CATEGORY_DEFAULT_IMAGE
+Use scrollIntoView without block: 'nearest' inside the inbox — it will scroll the window
+Add flex-grow or flex-1 to a scrollable container without also adding min-h-0

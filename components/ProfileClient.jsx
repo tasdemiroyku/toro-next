@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/utils/supabase/client'
@@ -62,6 +62,8 @@ const NAV_ITEMS = [
 ]
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const USERNAME_RE = /^[a-z0-9_]{3,30}$/
 
 function isVerifiedStudent(email) {
   if (!email) return false
@@ -204,6 +206,109 @@ function LanguageTagSelector({ selected, onChange }) {
   )
 }
 
+// ─── Username field with debounced availability check ────────────────────────
+
+/**
+ * usernameStatus: 'idle' | 'typing' | 'checking' | 'available' | 'taken' | 'invalid'
+ */
+function UsernameField({ value, initialUsername, onChange }) {
+  const [status, setStatus] = useState('idle')
+  const debounceRef = useRef(null)
+  const supabase = createClient()
+
+  const check = useCallback(async (val) => {
+    if (!val) { setStatus('idle'); return }
+    if (!USERNAME_RE.test(val)) { setStatus('invalid'); return }
+    if (val === initialUsername) { setStatus('available'); return }
+
+    setStatus('checking')
+    const { data } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('username', val)
+      .maybeSingle()
+
+    setStatus(data ? 'taken' : 'available')
+  }, [initialUsername]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleChange = (e) => {
+    // Enforce lowercase + allowed chars while typing
+    const raw = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '')
+    onChange(raw)
+    setStatus('typing')
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => check(raw), 600)
+  }
+
+  useEffect(() => () => clearTimeout(debounceRef.current), [])
+
+  // Status indicator shown inside the input
+  const indicator = () => {
+    if (status === 'checking') return (
+      <svg className="animate-spin w-4 h-4 text-toro-dark/30" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.2"/>
+        <path d="M12 2v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    )
+    if (status === 'available') return (
+      <svg className="w-4 h-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 6 9 17l-5-5"/>
+      </svg>
+    )
+    if (status === 'taken') return (
+      <svg className="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    )
+    if (status === 'invalid' && value.length > 0) return (
+      <svg className="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+    )
+    return null
+  }
+
+  const hint = {
+    idle: 'Your public handle — e.g. @oykü becomes /u/oyku',
+    typing: 'Checking…',
+    checking: 'Checking availability…',
+    available: `✓ @${value} is available`,
+    taken: `@${value} is already taken`,
+    invalid: 'Only lowercase letters, numbers and underscores. 3–30 characters.',
+  }[status] ?? ''
+
+  const hintColor = {
+    available: 'text-green-600',
+    taken: 'text-red-400',
+    invalid: 'text-amber-500',
+  }[status] ?? 'text-toro-dark/30'
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-xs text-toro-dark/50 tracking-wide">Username</label>
+      <div className="relative">
+        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-toro-dark/40 font-medium select-none pointer-events-none">
+          @
+        </span>
+        <input
+          type="text"
+          value={value}
+          onChange={handleChange}
+          placeholder="your_handle"
+          maxLength={30}
+          className="toro-input !pl-8 !pr-10"
+        />
+        <span className="absolute right-4 top-1/2 -translate-y-1/2">
+          {indicator()}
+        </span>
+      </div>
+      {hint && (
+        <p className={`text-xs ${hintColor} transition-colors`}>{hint}</p>
+      )}
+    </div>
+  )
+}
+
 // ─── Section: Personal Info ──────────────────────────────────────────────────
 
 function PersonalSection({ user, profile, setProfile }) {
@@ -214,23 +319,39 @@ function PersonalSection({ user, profile, setProfile }) {
   const [toast, setToast] = useState(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
+  // Track username status so we block save on 'taken' / 'invalid'
+  const [usernameStatus, setUsernameStatus] = useState(
+    profile?.username ? 'available' : 'idle'
+  )
+
   const showToast = (message, type = 'success') => {
     setToast({ message, type })
     setTimeout(() => setToast(null), 3000)
   }
 
   const handleSave = async () => {
+    if (usernameStatus === 'taken') {
+      showToast('That username is already taken.', 'error')
+      return
+    }
+    if (usernameStatus === 'invalid') {
+      showToast('Please fix your username format.', 'error')
+      return
+    }
+
     setSaving(true)
     const { error } = await supabase
       .from('profiles')
       .update({
         full_name:    profile.full_name,
+        username:     profile.username || null,
         bio:          profile.bio,
         languages:    profile.languages,
         phone_number: profile.phone_number,
         skills:       profile.skills,
       })
       .eq('id', user.id)
+
     showToast(
       error ? 'Something went wrong.' : 'Profile saved.',
       error ? 'error' : 'success'
@@ -247,6 +368,24 @@ function PersonalSection({ user, profile, setProfile }) {
 
   return (
     <div className="flex flex-col gap-6">
+
+      {/* Public profile link — only shown once they have a username */}
+      {profile?.username && (
+        <a
+          href={`/u/${profile.username}`}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-toro-gold hover:underline w-fit"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+          View public profile (/u/{profile.username})
+        </a>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <Field label="Full name">
           <input
@@ -267,6 +406,16 @@ function PersonalSection({ user, profile, setProfile }) {
           />
         </Field>
       </div>
+
+      {/* Username field — full width */}
+      <UsernameField
+        value={profile?.username || ''}
+        initialUsername={profile?.username || ''}
+        onChange={val => {
+          update('username', val)
+          // Reset status on change so parent re-evaluates via UsernameField
+        }}
+      />
 
       <Field label="Bio" hint="Shown on your public profile and listings.">
         <textarea
@@ -535,7 +684,6 @@ function SecuritySection({ user }) {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Current email info */}
       <div className="rounded-2xl p-4 text-sm flex items-center gap-3 bg-toro-dark/5 border border-toro-dark/10">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-toro-dark/40 shrink-0">
           <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -546,7 +694,6 @@ function SecuritySection({ user }) {
         </span>
       </div>
 
-      {/* Update email */}
       <div className="flex flex-col gap-5">
         <div>
           <h3 className="text-sm text-toro-dark mb-0.5">Update email</h3>
@@ -556,71 +703,34 @@ function SecuritySection({ user }) {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="New email">
-            <input
-              type="email"
-              value={emailForm.email}
-              onChange={e => setEmailForm(f => ({ ...f, email: e.target.value }))}
-              placeholder="new@email.com"
-              className="toro-input"
-            />
+            <input type="email" value={emailForm.email} onChange={e => setEmailForm(f => ({ ...f, email: e.target.value }))} placeholder="new@email.com" className="toro-input" />
           </Field>
           <Field label="Confirm new email">
-            <input
-              type="email"
-              value={emailForm.confirm}
-              onChange={e => setEmailForm(f => ({ ...f, confirm: e.target.value }))}
-              placeholder="new@email.com"
-              className="toro-input"
-            />
+            <input type="email" value={emailForm.confirm} onChange={e => setEmailForm(f => ({ ...f, confirm: e.target.value }))} placeholder="new@email.com" className="toro-input" />
           </Field>
         </div>
-        <button
-          onClick={handleEmailUpdate}
-          disabled={emailLoading}
-          className="toro-btn-primary self-start min-w-[160px]"
-        >
+        <button onClick={handleEmailUpdate} disabled={emailLoading} className="toro-btn-primary self-start min-w-[160px]">
           {emailLoading ? 'Sending…' : 'Update email'}
         </button>
       </div>
 
       <div className="border-t border-toro-dark/10" />
 
-      {/* Update password */}
       <div className="flex flex-col gap-5">
         <div>
           <h3 className="text-sm text-toro-dark mb-0.5">Update password</h3>
-          <p className="text-xs text-toro-dark/40">
-            Min 8 characters. Use uppercase, lowercase, a number and a symbol.
-          </p>
+          <p className="text-xs text-toro-dark/40">Min 8 characters. Use uppercase, lowercase, a number and a symbol.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="New password">
-            <input
-              type="password"
-              value={passwordForm.password}
-              onChange={e => setPasswordForm(f => ({ ...f, password: e.target.value }))}
-              placeholder="New password"
-              className="toro-input"
-            />
+            <input type="password" value={passwordForm.password} onChange={e => setPasswordForm(f => ({ ...f, password: e.target.value }))} placeholder="New password" className="toro-input" />
           </Field>
           <Field label="Confirm password">
-            <input
-              type="password"
-              value={passwordForm.confirm}
-              onChange={e => setPasswordForm(f => ({ ...f, confirm: e.target.value }))}
-              placeholder="Confirm password"
-              className="toro-input"
-            />
+            <input type="password" value={passwordForm.confirm} onChange={e => setPasswordForm(f => ({ ...f, confirm: e.target.value }))} placeholder="Confirm password" className="toro-input" />
           </Field>
         </div>
-        {passwordForm.password && (
-          <PasswordStrength password={passwordForm.password} />
-        )}
-        <button
-          onClick={handlePasswordUpdate}
-          disabled={passwordLoading}
-          className="toro-btn-primary self-start min-w-[160px]"
-        >
+        {passwordForm.password && <PasswordStrength password={passwordForm.password} />}
+        <button onClick={handlePasswordUpdate} disabled={passwordLoading} className="toro-btn-primary self-start min-w-[160px]">
           {passwordLoading ? 'Updating…' : 'Update password'}
         </button>
       </div>
@@ -637,7 +747,7 @@ export default function ProfileClient({ user, initialProfile }) {
   const [activeTab, setActiveTab] = useState('personal')
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [globalToast, setGlobalToast] = useState(null)
-  
+
   const fileInputRef = useRef(null)
   const supabase = createClient()
   const verified = isVerifiedStudent(user?.email)
@@ -653,7 +763,6 @@ export default function ProfileClient({ user, initialProfile }) {
     security: <SecuritySection user={user} />,
   }
 
-  // Handle Avatar Upload
   const handleAvatarUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -662,13 +771,11 @@ export default function ProfileClient({ user, initialProfile }) {
     try {
       const url = await uploadAvatar(file, user.id)
       if (url) {
-        // Update DB
         await supabase.from('profiles').update({ avatar_url: url }).eq('id', user.id)
-        // Update UI
         setProfile(prev => ({ ...prev, avatar_url: url }))
         setGlobalToast({ message: 'Profile picture updated.', type: 'success' })
       }
-    } catch (error) {
+    } catch {
       setGlobalToast({ message: 'Failed to upload image.', type: 'error' })
     } finally {
       setUploadingAvatar(false)
@@ -687,8 +794,8 @@ export default function ProfileClient({ user, initialProfile }) {
 
       {/* Profile header */}
       <div className="flex flex-col sm:flex-row items-center gap-5 mb-10">
-        
-        {/* ── AVATAR UPLOAD WRAPPER ── */}
+
+        {/* Avatar upload */}
         <div className="relative shrink-0 group">
           <button
             onClick={() => !uploadingAvatar && fileInputRef.current?.click()}
@@ -701,16 +808,12 @@ export default function ProfileClient({ user, initialProfile }) {
             ) : (
               <span>{initials}</span>
             )}
-
-            {/* Hover overlay (Camera Icon) */}
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                 <circle cx="12" cy="13" r="4"/>
               </svg>
             </div>
-
-            {/* Loading overlay (Spinner) */}
             {uploadingAvatar && (
               <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] flex items-center justify-center">
                 <svg className="animate-spin w-7 h-7 text-toro-dark" viewBox="0 0 24 24" fill="none">
@@ -720,17 +823,7 @@ export default function ProfileClient({ user, initialProfile }) {
               </div>
             )}
           </button>
-
-          {/* Hidden File Input */}
-          <input 
-            type="file" 
-            accept="image/*" 
-            className="hidden" 
-            ref={fileInputRef} 
-            onChange={handleAvatarUpload} 
-          />
-
-          {/* ToretBull Gold Badge */}
+          <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleAvatarUpload} />
           <div className="absolute bottom-0 right-0 w-7 h-7 rounded-full border-2 border-white flex items-center justify-center shadow bg-toro-gold pointer-events-none z-10">
             <ToretBull className="w-3.5 h-3.5 text-white" />
           </div>
@@ -738,16 +831,15 @@ export default function ProfileClient({ user, initialProfile }) {
 
         <div className="flex flex-col items-center sm:items-start gap-1.5">
           <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
-            <h1 className="text-2xl text-toro-dark">
-              {profile?.full_name || 'My Profile'}
-            </h1>
+            <h1 className="text-2xl text-toro-dark">{profile?.full_name || 'My Profile'}</h1>
             {verified && <VerifiedBadge />}
           </div>
+          {profile?.username && (
+            <p className="text-sm font-mono text-toro-dark/40">@{profile.username}</p>
+          )}
           <p className="text-sm text-toro-dark/40">{user?.email}</p>
           {user?.created_at && (
-            <p className="text-xs text-toro-dark/30">
-              Member since {memberSince(user.created_at)}
-            </p>
+            <p className="text-xs text-toro-dark/30">Member since {memberSince(user.created_at)}</p>
           )}
         </div>
       </div>
@@ -767,9 +859,7 @@ export default function ProfileClient({ user, initialProfile }) {
                   : 'bg-transparent text-toro-dark/50 hover:text-toro-dark'
               }`}
             >
-              <span className={activeTab === item.id ? 'opacity-100' : 'opacity-60'}>
-                {item.icon}
-              </span>
+              <span className={activeTab === item.id ? 'opacity-100' : 'opacity-60'}>{item.icon}</span>
               {item.label}
             </button>
           ))}
@@ -806,7 +896,6 @@ export default function ProfileClient({ user, initialProfile }) {
             <h2 className="text-xs text-toro-gold uppercase tracking-[0.18em] mb-6">
               {NAV_ITEMS.find(n => n.id === activeTab)?.label}
             </h2>
-
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
