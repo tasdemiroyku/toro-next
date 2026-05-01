@@ -16,7 +16,8 @@ export async function generateMetadata({ params }) {
 
   return {
     title: profile.full_name || `@${username}`,
-    description: profile.bio?.slice(0, 160) || `View ${profile.full_name || username}'s services on Toro.`,
+    description: profile.bio?.slice(0, 160) ||
+      `View ${profile.full_name || username}'s services on Toro.`,
   }
 }
 
@@ -28,19 +29,15 @@ export default async function PublicProfilePage({ params }) {
   const USERNAME_RE = /^[a-z0-9_]{3,30}$/
   if (!USERNAME_RE.test(username)) notFound()
 
-  // Fetch profile and the viewer's identity in parallel
+  // Fetch profile + current viewer in parallel
   const [{ data: profile }, { data: { user } }] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('*')
-      .eq('username', username)
-      .single(),
+    supabase.from('profiles').select('*').eq('username', username).single(),
     supabase.auth.getUser(),
   ])
 
   if (!profile) notFound()
 
-  // Fetch this user's active listings (single joined query)
+  // Fetch this user's active listings
   const { data: listings } = await supabase
     .from('listings')
     .select('*, profiles(id, full_name, avatar_url, username, is_verified)')
@@ -56,6 +53,7 @@ export default async function PublicProfilePage({ params }) {
         profile={profile}
         listings={listings ?? []}
         isOwnProfile={isOwnProfile}
+        currentUserId={user?.id ?? null}
       />
     </div>
   )

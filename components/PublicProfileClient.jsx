@@ -1,7 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { createClient } from '@/utils/supabase/client'
 import ToretBull from '@/components/ToretBull'
 import { CATEGORY_LABEL, CATEGORY_DEFAULT_IMAGE } from '@/lib/categories'
 
@@ -9,17 +11,11 @@ const fadeUp = {
   hidden: { opacity: 0, y: 24 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
 }
-
-const stagger = {
-  visible: { transition: { staggerChildren: 0.1 } },
-}
+const stagger = { visible: { transition: { staggerChildren: 0.1 } } }
 
 function memberSince(dateStr) {
   if (!dateStr) return null
-  return new Date(dateStr).toLocaleDateString('en-GB', {
-    month: 'long',
-    year: 'numeric',
-  })
+  return new Date(dateStr).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
 }
 
 function VerifiedBadge() {
@@ -33,37 +29,148 @@ function VerifiedBadge() {
   )
 }
 
-export default function PublicProfileClient({ profile, listings, isOwnProfile }) {
+// ── Contact modal — picks the provider's most recent listing automatically ────
+function ContactModal({ profile, listings, currentUserId, onClose }) {
+  const supabase = createClient()
+  const router   = useRouter()
+  const [message, setMessage]     = useState('')
+  const [sending, setSending]     = useState(false)
+  const [sent, setSent]           = useState(false)
+  const [selectedId, setSelectedId] = useState(listings[0]?.id ?? null)
+
+  const handleSend = async () => {
+    if (!message.trim() || !selectedId || sending) return
+    setSending(true)
+    const { error } = await supabase.from('messages').insert({
+      listing_id:  selectedId,
+      sender_id:   currentUserId,
+      receiver_id: profile.id,
+      content:     message.trim(),
+    })
+    if (!error) setSent(true)
+    setSending(false)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-toro-dark/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        onClick={e => e.stopPropagation()}
+        className="bg-toro-light rounded-[2rem] p-8 w-full max-w-md shadow-2xl border border-toro-dark/5 flex flex-col gap-5"
+      >
+        {sent ? (
+          <>
+            <div className="flex flex-col items-center gap-3 py-4 text-center">
+              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6 9 17l-5-5"/>
+                </svg>
+              </div>
+              <h2 className="text-lg font-bold text-toro-dark">Message sent!</h2>
+              <p className="text-sm text-toro-dark/50">
+                {profile.full_name?.split(' ')[0] || 'They'} will reply in your inbox.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={onClose} className="flex-1 toro-btn-outline">Close</button>
+              <button onClick={() => router.push('/inbox')} className="flex-1 toro-btn-primary">Go to inbox</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex flex-col gap-1">
+              <h2 className="text-lg font-bold text-toro-dark">
+                Contact {profile.full_name?.split(' ')[0] || 'this member'}
+              </h2>
+              <p className="text-xs text-toro-dark/40">Choose which service your message is about.</p>
+            </div>
+
+            {/* Listing selector — only shown if they have multiple listings */}
+            {listings.length > 1 && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-toro-dark/50 uppercase tracking-wide">Regarding</label>
+                <select
+                  value={selectedId}
+                  onChange={e => setSelectedId(e.target.value)}
+                  className="toro-input appearance-none cursor-pointer"
+                >
+                  {listings.map(l => (
+                    <option key={l.id} value={l.id}>{l.title}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Single listing — just show the title */}
+            {listings.length === 1 && (
+              <div className="text-sm font-semibold text-toro-dark bg-toro-dark/5 rounded-2xl px-4 py-2.5 truncate">
+                {listings[0].title}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-toro-dark/50 uppercase tracking-wide">Message</label>
+              <textarea
+                rows={4}
+                maxLength={500}
+                placeholder="Introduce yourself and describe what you need..."
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                className="toro-input !rounded-2xl resize-none"
+              />
+              <p className="text-xs text-toro-dark/25 text-right">{message.length}/500</p>
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={onClose} className="flex-1 toro-btn-outline">Cancel</button>
+              <button
+                onClick={handleSend}
+                disabled={!message.trim() || sending}
+                className="flex-1 toro-btn-primary disabled:opacity-50"
+              >
+                {sending ? 'Sending…' : 'Send message'}
+              </button>
+            </div>
+          </>
+        )}
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+export default function PublicProfileClient({ profile, listings, isOwnProfile, currentUserId }) {
   const router = useRouter()
+  const [showContact, setShowContact] = useState(false)
 
   const initials =
     profile.full_name?.[0]?.toUpperCase() ||
     profile.username?.[0]?.toUpperCase() ||
     '?'
 
+  // Can only contact if: visitor is logged in, not own profile, and profile has at least one listing
+  const canContact = !isOwnProfile && !!currentUserId && listings.length > 0
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
       {/* ── Profile header ── */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={stagger}
-        className="flex flex-col sm:flex-row items-start gap-6 mb-12"
-      >
+      <motion.div initial="hidden" animate="visible" variants={stagger} className="flex flex-col sm:flex-row items-start gap-6 mb-12">
+
         {/* Avatar */}
         <motion.div variants={fadeUp} className="shrink-0">
           <div className="relative w-24 h-24 rounded-full overflow-hidden bg-toro-dark shadow-lg">
             {profile.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={profile.full_name || profile.username}
-                className="w-full h-full object-cover"
-              />
+              <img src={profile.avatar_url} alt={profile.full_name || profile.username} className="w-full h-full object-cover" />
             ) : (
-              <span className="w-full h-full flex items-center justify-center text-toro-light text-3xl font-bold">
-                {initials}
-              </span>
+              <span className="w-full h-full flex items-center justify-center text-toro-light text-3xl font-bold">{initials}</span>
             )}
           </div>
         </motion.div>
@@ -71,131 +178,91 @@ export default function PublicProfileClient({ profile, listings, isOwnProfile })
         {/* Name, handle, meta */}
         <motion.div variants={fadeUp} className="flex-1 min-w-0 flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold text-toro-dark">
-              {profile.full_name || 'Toro Member'}
-            </h1>
+            <h1 className="text-2xl font-bold text-toro-dark">{profile.full_name || 'Toro Member'}</h1>
             {profile.is_verified && <VerifiedBadge />}
           </div>
 
           {profile.username && (
-            <p className="text-sm font-mono text-toro-dark/40">
-              @{profile.username}
-            </p>
+            <p className="text-sm font-mono text-toro-dark/40">@{profile.username}</p>
           )}
 
-          {/* Meta pills */}
           <div className="flex flex-wrap gap-2 mt-1">
             {profile.university && (
               <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-toro-dark/60 bg-toro-dark/5 px-3 py-1 rounded-full">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                  <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
                 </svg>
                 {profile.university}
               </span>
             )}
             {profile.department && (
-              <span className="text-xs font-semibold text-toro-dark/50 bg-toro-dark/5 px-3 py-1 rounded-full">
-                {profile.department}
-              </span>
+              <span className="text-xs font-semibold text-toro-dark/50 bg-toro-dark/5 px-3 py-1 rounded-full">{profile.department}</span>
             )}
             {profile.created_at && (
-              <span className="text-xs text-toro-dark/30 px-1 py-1 self-center">
-                Member since {memberSince(profile.created_at)}
-              </span>
+              <span className="text-xs text-toro-dark/30 px-1 py-1 self-center">Member since {memberSince(profile.created_at)}</span>
             )}
           </div>
 
           {/* CTA row */}
-          <div className="flex gap-3 mt-2">
+          <div className="flex gap-3 mt-2 flex-wrap">
             {isOwnProfile ? (
-              <button
-                onClick={() => router.push('/profile')}
-                className="toro-btn-outline !py-2 !px-5 !text-xs"
-              >
+              <button onClick={() => router.push('/profile')} className="toro-btn-outline !py-2 !px-5 !text-xs">
                 Edit profile
               </button>
             ) : (
-              <button
-                onClick={() => router.push('/listings')}
-                className="toro-btn-primary !py-2 !px-5 !text-xs"
-              >
-                Browse all services
-              </button>
+              <>
+                {canContact && (
+                  <button onClick={() => setShowContact(true)} className="toro-btn-primary !py-2 !px-5 !text-xs">
+                    Send message
+                  </button>
+                )}
+                <button onClick={() => router.push('/listings')} className="toro-btn-outline !py-2 !px-5 !text-xs">
+                  Browse all services
+                </button>
+              </>
             )}
           </div>
         </motion.div>
       </motion.div>
 
-      {/* ── Two-column layout: left = about, right = listings ── */}
+      {/* ── Two-column layout ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
         {/* Left — About */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={stagger}
-          className="lg:col-span-1 flex flex-col gap-5"
-        >
-          {/* Bio */}
+        <motion.div initial="hidden" animate="visible" variants={stagger} className="lg:col-span-1 flex flex-col gap-5">
           {profile.bio && (
             <motion.div variants={fadeUp} className="bg-white border border-toro-dark/10 rounded-2xl p-5">
-              <p className="text-xs font-semibold text-toro-dark/40 uppercase tracking-widest mb-3">
-                About
-              </p>
-              <p className="text-sm text-toro-dark/70 leading-relaxed">
-                {profile.bio}
-              </p>
+              <p className="text-xs font-semibold text-toro-dark/40 uppercase tracking-widest mb-3">About</p>
+              <p className="text-sm text-toro-dark/70 leading-relaxed">{profile.bio}</p>
             </motion.div>
           )}
 
-          {/* Languages */}
           {profile.languages?.length > 0 && (
             <motion.div variants={fadeUp} className="bg-white border border-toro-dark/10 rounded-2xl p-5">
-              <p className="text-xs font-semibold text-toro-dark/40 uppercase tracking-widest mb-3">
-                Languages
-              </p>
+              <p className="text-xs font-semibold text-toro-dark/40 uppercase tracking-widest mb-3">Languages</p>
               <div className="flex flex-wrap gap-1.5">
                 {profile.languages.map(lang => (
-                  <span
-                    key={lang}
-                    className="text-xs font-semibold bg-toro-dark text-toro-light px-3 py-1 rounded-full"
-                  >
-                    {lang}
-                  </span>
+                  <span key={lang} className="text-xs font-semibold bg-toro-dark text-toro-light px-3 py-1 rounded-full">{lang}</span>
                 ))}
               </div>
             </motion.div>
           )}
 
-          {/* Skills */}
           {profile.skills && (
             <motion.div variants={fadeUp} className="bg-white border border-toro-dark/10 rounded-2xl p-5">
-              <p className="text-xs font-semibold text-toro-dark/40 uppercase tracking-widest mb-3">
-                Skills
-              </p>
+              <p className="text-xs font-semibold text-toro-dark/40 uppercase tracking-widest mb-3">Skills</p>
               <div className="flex flex-wrap gap-1.5">
                 {profile.skills.split(',').map(s => s.trim()).filter(Boolean).map(skill => (
-                  <span
-                    key={skill}
-                    className="text-xs font-semibold text-toro-gold bg-toro-gold/10 px-3 py-1 rounded-full"
-                  >
-                    {skill}
-                  </span>
+                  <span key={skill} className="text-xs font-semibold text-toro-gold bg-toro-gold/10 px-3 py-1 rounded-full">{skill}</span>
                 ))}
               </div>
             </motion.div>
           )}
         </motion.div>
 
-        {/* Right — Active listings */}
+        {/* Right — Listings */}
         <div className="lg:col-span-2">
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={stagger}
-            className="flex flex-col gap-5"
-          >
+          <motion.div initial="hidden" animate="visible" variants={stagger} className="flex flex-col gap-5">
             <motion.div variants={fadeUp} className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-toro-dark">
                 {isOwnProfile ? 'Your active services' : 'Active services'}
@@ -207,37 +274,23 @@ export default function PublicProfileClient({ profile, listings, isOwnProfile })
 
             {listings.length === 0 ? (
               <motion.div variants={fadeUp} className="toro-empty-state">
-                <div className="w-14 h-14 text-toro-dark/15">
-                  <ToretBull className="w-full h-full" />
-                </div>
+                <div className="w-14 h-14 text-toro-dark/15"><ToretBull className="w-full h-full" /></div>
                 <div className="flex flex-col gap-1.5">
                   <p className="text-toro-dark font-bold">No services yet</p>
                   <p className="text-toro-dark/40 text-sm max-w-xs mx-auto">
-                    {isOwnProfile
-                      ? 'Post your first service to start earning.'
-                      : 'This member hasn\'t posted any services yet.'}
+                    {isOwnProfile ? 'Post your first service to start earning.' : 'This member hasn\'t posted any services yet.'}
                   </p>
                 </div>
                 {isOwnProfile && (
-                  <button
-                    onClick={() => router.push('/listings/create')}
-                    className="toro-btn-primary !py-2.5 !px-6"
-                  >
+                  <button onClick={() => router.push('/listings/create')} className="toro-btn-primary !py-2.5 !px-6">
                     Post a service
                   </button>
                 )}
               </motion.div>
             ) : (
-              <motion.div
-                variants={stagger}
-                className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-              >
+              <motion.div variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {listings.map(listing => {
-                  const cover =
-                    listing.image_url ||
-                    CATEGORY_DEFAULT_IMAGE[listing.category] ||
-                    null
-
+                  const cover = listing.image_url || CATEGORY_DEFAULT_IMAGE[listing.category] || null
                   return (
                     <motion.div
                       key={listing.id}
@@ -245,19 +298,13 @@ export default function PublicProfileClient({ profile, listings, isOwnProfile })
                       onClick={() => router.push(`/listings/${listing.id}`)}
                       className="bg-white border border-toro-dark/10 rounded-[2rem] overflow-hidden flex flex-col hover:border-toro-gold hover:shadow-xl transition-all cursor-pointer group"
                     >
-                      {/* Cover */}
                       <div className="h-36 overflow-hidden bg-toro-dark/5 flex items-center justify-center">
                         {cover ? (
-                          <img
-                            src={cover}
-                            alt={listing.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
+                          <img src={cover} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                         ) : (
                           <ToretBull className="w-10 h-10 text-toro-dark/10" />
                         )}
                       </div>
-
                       <div className="p-4 flex flex-col gap-2 flex-1">
                         <span className="text-[10px] font-black text-toro-gold uppercase tracking-[0.1em] bg-toro-gold/10 w-fit px-2.5 py-1 rounded-lg">
                           {CATEGORY_LABEL[listing.category] || listing.category}
@@ -267,20 +314,13 @@ export default function PublicProfileClient({ profile, listings, isOwnProfile })
                         </h3>
                         <div className="flex items-center justify-between mt-auto pt-3 border-t border-toro-dark/5">
                           {listing.location && (
-                            <span className="text-[10px] text-toro-dark/40 font-medium truncate">
-                              📍 {listing.location}
-                            </span>
+                            <span className="text-[10px] text-toro-dark/40 font-medium truncate">📍 {listing.location}</span>
                           )}
                           <span className="text-sm font-black text-toro-dark ml-auto shrink-0">
                             {listing.price === 0 || listing.price_type === 'free' ? (
                               <span className="text-xs font-black text-green-600 bg-green-50 px-2 py-0.5 rounded-full">Free</span>
                             ) : (
-                              <>
-                                €{listing.price}
-                                <span className="text-[10px] font-bold text-toro-dark/30 ml-0.5">
-                                  /{listing.price_type === 'hour' ? 'hr' : listing.price_type}
-                                </span>
-                              </>
+                              <>€{listing.price}<span className="text-[10px] font-bold text-toro-dark/30 ml-0.5">/{listing.price_type === 'hour' ? 'hr' : listing.price_type}</span></>
                             )}
                           </span>
                         </div>
@@ -293,6 +333,18 @@ export default function PublicProfileClient({ profile, listings, isOwnProfile })
           </motion.div>
         </div>
       </div>
+
+      {/* Contact modal */}
+      <AnimatePresence>
+        {showContact && (
+          <ContactModal
+            profile={profile}
+            listings={listings}
+            currentUserId={currentUserId}
+            onClose={() => setShowContact(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
