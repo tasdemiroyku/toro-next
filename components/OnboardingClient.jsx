@@ -50,10 +50,28 @@ function UsernameField({ value, onChange, onStatusChange }) {
   const supabase = createClient()
 
   const check = useCallback(async (val) => {
-    if (!val) { const s = 'idle'; setStatus(s); onStatusChange(s); return }
-    if (!USERNAME_RE.test(val)) { const s = 'invalid'; setStatus(s); onStatusChange(s); return }
+    // 1. Empty check
+    if (!val) { 
+      const s = 'idle'; 
+      setStatus(s); 
+      onStatusChange(s); 
+      return 
+    }
+    
+    // 2. Format validation against our Regex
+    // If it fails, mark as invalid and DO NOT hit the database
+    if (!USERNAME_RE.test(val)) { 
+      const s = 'invalid'; 
+      setStatus(s); 
+      onStatusChange(s); 
+      return 
+    }
 
-    const s = 'checking'; setStatus(s); onStatusChange(s)
+    // 3. If format is correct, check database availability
+    const s = 'checking'; 
+    setStatus(s); 
+    onStatusChange(s)
+    
     const { data } = await supabase
       .from('profiles')
       .select('id')
@@ -66,7 +84,9 @@ function UsernameField({ value, onChange, onStatusChange }) {
   }, [onStatusChange]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleChange = (e) => {
-    const raw = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '')
+    // We let the user type whatever they want, but we enforce lowercase visually.
+    // We REMOVED the regex replacement so they can see what they are typing.
+    const raw = e.target.value.toLowerCase()
     onChange(raw)
     setStatus('typing')
     onStatusChange('typing')
@@ -93,18 +113,27 @@ function UsernameField({ value, onChange, onStatusChange }) {
         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
       </svg>
     ),
+    invalid: (
+       <svg className="w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+    )
   }
 
   const hintText = {
-    idle: 'Your public handle — e.g. @oykü becomes /u/oyku',
+    idle: 'Your public handle — e.g. @oyku becomes /u/oyku',
     typing: '',
     checking: 'Checking availability…',
     available: `✓ @${value} is available`,
     taken: `@${value} is already taken — try another`,
-    invalid: 'Lowercase letters, numbers and underscores only · 3–30 characters',
+    invalid: 'Letters, numbers and underscores only · 3–30 chars',
   }[status] ?? ''
 
-  const hintColor = { available: 'text-green-600', taken: 'text-red-400', invalid: 'text-amber-500' }[status] ?? 'text-toro-dark/35'
+  const hintColor = { 
+    available: 'text-green-600', 
+    taken: 'text-red-400', 
+    invalid: 'text-amber-500' 
+  }[status] ?? 'text-toro-dark/35'
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -119,7 +148,7 @@ function UsernameField({ value, onChange, onStatusChange }) {
           onChange={handleChange}
           placeholder="your_handle"
           maxLength={30}
-          className="toro-input !pl-8 !pr-10"
+          className={`toro-input !pl-8 !pr-10 ${status === 'invalid' || status === 'taken' ? 'border-red-300 focus:border-red-400 bg-red-50/50' : ''}`}
           autoFocus
           autoCapitalize="none"
           autoCorrect="off"

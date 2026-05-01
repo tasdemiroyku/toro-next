@@ -1,12 +1,12 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import ProfileClient from '@/components/ProfileClient'
+import EditProfileClient from '@/components/EditProfileClient'
 
 export const metadata = {
-  title: 'My Profile',
+  title: 'Edit Profile',
 }
 
-export default async function ProfilePage() {
+export default async function ProfileSettingsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -21,7 +21,7 @@ export default async function ProfilePage() {
   return (
     <div className="flex-grow bg-toro-light">
       <main className="w-full">
-        <ProfileClient user={user} initialProfile={profile} />
+        <EditProfileClient user={user} initialProfile={profile} />
       </main>
     </div>
   )
