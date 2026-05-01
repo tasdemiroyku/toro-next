@@ -9,8 +9,39 @@ export async function GET(request) {
   if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
+
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+      // Re-fetch the user after the session is established
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        // Fast-path: metadata already has username (returning user)
+        if (user.user_metadata?.username) {
+          return NextResponse.redirect(`${origin}${next}`)
+        }
+
+        // Slower path: first-time OAuth user — check the DB
+        // This only fires once per user, so the extra query is acceptable.
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', user.id)
+          .maybeSingle()
+
+        if (profile?.username) {
+          // Profile has a username but metadata doesn't (sync lag).
+          // Write it back to metadata so future middleware checks are free.
+          await supabase.auth.updateUser({
+            data: { username: profile.username },
+          })
+          return NextResponse.redirect(`${origin}${next}`)
+        }
+
+        // No username anywhere → send to onboarding
+        const onboardingUrl = new URL('/onboarding', origin)
+        if (next !== '/') onboardingUrl.searchParams.set('next', next)
+        return NextResponse.redirect(onboardingUrl.toString())
+      }
     }
   }
 
