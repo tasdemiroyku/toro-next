@@ -6,9 +6,10 @@ export default async function Home() {
 
   const { data: { user } } = await supabase.auth.getUser()
 
+  // FIX: Added id, username, and is_verified to the profiles selection
   const { data: listings, error } = await supabase
     .from('listings')
-    .select('*, profiles(full_name, avatar_url)')
+    .select('*, profiles(id, full_name, avatar_url, username, is_verified)')
     .eq('is_active', true)
     .order('created_at', { ascending: false })
     .limit(12)

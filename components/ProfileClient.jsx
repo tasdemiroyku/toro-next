@@ -369,23 +369,7 @@ function PersonalSection({ user, profile, setProfile }) {
   return (
     <div className="flex flex-col gap-6">
 
-      {/* Public profile link — only shown once they have a username */}
-      {profile?.username && (
-        <a
-          href={`/u/${profile.username}`}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-2 text-xs font-semibold text-toro-gold hover:underline w-fit"
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-            <polyline points="15 3 21 3 21 9"/>
-            <line x1="10" y1="14" x2="21" y2="3"/>
-          </svg>
-          View public profile (/u/{profile.username})
-        </a>
-      )}
-
+      {/* Full name and phone number fields */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <Field label="Full name">
           <input

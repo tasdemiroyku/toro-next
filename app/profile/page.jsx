@@ -1,28 +1,25 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import ProfileClient from '@/components/ProfileClient'
 
-export const metadata = {
-  title: 'My Profile',
-}
-
-export default async function ProfilePage() {
+export default async function ProfileRouterPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) redirect('/login')
+  if (!user) {
+    redirect('/login')
+  }
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*')
+    .select('username')
     .eq('id', user.id)
     .single()
 
-  return (
-    <div className="flex-grow bg-toro-light">
-      <main className="w-full">
-        <ProfileClient user={user} initialProfile={profile} />
-      </main>
-    </div>
-  )
+  // Strict Enforcement: No username? You cannot enter the site.
+  if (!profile?.username) {
+    redirect('/onboarding')
+  }
+
+  // Teleport directly to their public profile view
+  redirect(`/u/${profile.username}`)
 }

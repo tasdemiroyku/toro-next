@@ -14,7 +14,7 @@ const stagger = { visible: { transition: { staggerChildren: 0.15 } } }
 
 // ── How many cards fit at this viewport width ─────────────────────────────────
 function useVisibleCount() {
-  const [count, setCount] = useState(4) // default for SSR (desktop)
+  const [count, setCount] = useState(4)
   useEffect(() => {
     const update = () => {
       if (window.innerWidth < 640) setCount(1)
@@ -28,6 +28,24 @@ function useVisibleCount() {
   return count
 }
 
+// ── Verified Student Badge (Academic Icon) ────────────────────────────────────
+function VerifiedBadge() {
+  return (
+    <span
+      title="Verified Student"
+      className="inline-flex items-center gap-1 pl-1.5 pr-2 py-0.5 rounded-full text-[10px] font-bold bg-[#edf7ed] text-[#1e4620] border border-[#c3e6c5] shrink-0 shadow-sm"
+    >
+      <div className="flex items-center justify-center shrink-0">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+          <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+        </svg>
+      </div>
+      Verified
+    </span>
+  )
+}
+
 // ── Individual listing card ───────────────────────────────────────────────────
 function ListingCard({ item, onClick }) {
   const cover = item.image_url || CATEGORY_DEFAULT_IMAGE[item.category] || null
@@ -36,11 +54,11 @@ function ListingCard({ item, onClick }) {
   return (
     <div
       onClick={onClick}
-      className="flex flex-col bg-white border border-toro-dark/5 rounded-[2rem] overflow-hidden hover:border-toro-gold/30 hover:shadow-2xl transition-all duration-300 cursor-pointer group p-2"
+      className="flex flex-col bg-white border border-toro-dark/5 rounded-[2rem] overflow-hidden hover:border-toro-gold/40 hover:shadow-[0_20px_40px_-15px_rgba(201,150,62,0.15)] transition-all duration-300 cursor-pointer group/card p-2"
     >
-      <div className="h-32 rounded-[1.5rem] relative overflow-hidden flex items-center justify-center bg-toro-dark/5 group-hover:bg-toro-dark/10 transition-colors">
+      <div className="h-32 rounded-[1.5rem] relative overflow-hidden flex items-center justify-center bg-toro-dark/5 group-hover/card:bg-toro-dark/10 transition-colors">
         {cover ? (
-          <img src={cover} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <img src={cover} alt={item.title} className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-300" />
         ) : (
           <ToretBull className="w-12 h-12 text-toro-dark opacity-5" />
         )}
@@ -51,42 +69,30 @@ function ListingCard({ item, onClick }) {
       </div>
 
       <div className="p-4 flex flex-col gap-3">
-        <h3 className="text-toro-dark text-base font-bold leading-tight group-hover:text-toro-gold transition-colors line-clamp-2 min-h-[48px]">
+        <h3 className="text-toro-dark text-base font-bold leading-tight group-hover/card:text-toro-gold transition-colors line-clamp-2 min-h-[48px]">
           {item.title}
         </h3>
         <div className="flex items-center justify-between mt-auto pt-3 border-t border-toro-dark/5">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             <div className="w-7 h-7 rounded-full bg-toro-dark/5 flex items-center justify-center overflow-hidden border border-toro-dark/10 shrink-0">
               {item.profiles?.avatar_url
                 ? <img src={item.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
                 : <span className="text-[10px] font-bold text-toro-dark/30">{item.profiles?.full_name?.[0] || 'T'}</span>
               }
             </div>
-            <span className="text-[11px] text-toro-dark/50 font-bold uppercase tracking-tight truncate max-w-[90px]">
+            <span className="text-[11px] text-toro-dark/50 font-bold capitalize tracking-tight truncate max-w-[80px]">
               {item.profiles?.full_name || 'Torino Student'}
             </span>
+            {item.profiles?.is_verified && <VerifiedBadge />}
           </div>
           {item.location && (
-            <span className="text-[10px] text-toro-gold font-bold bg-toro-gold/5 px-2 py-0.5 rounded-md truncate max-w-[80px]">
+            <span className="text-[10px] text-toro-gold font-bold bg-toro-gold/5 px-2 py-0.5 rounded-md truncate max-w-[70px] shrink-0">
               {item.location}
             </span>
           )}
         </div>
       </div>
     </div>
-  )
-}
-
-// ── Round nav button ──────────────────────────────────────────────────────────
-function NavBtn({ onClick, children, label }) {
-  return (
-    <button
-      onClick={onClick}
-      aria-label={label}
-      className="w-10 h-10 rounded-full bg-white border border-toro-dark/10 shadow-md flex items-center justify-center text-toro-dark hover:bg-toro-dark hover:text-toro-light hover:border-toro-dark transition-all active:scale-95 shrink-0"
-    >
-      {children}
-    </button>
   )
 }
 
@@ -104,21 +110,18 @@ export default function HomeClient({ user, listings }) {
 
   const totalPages = listings.length > 0 ? Math.ceil(listings.length / visibleCount) : 0
 
-  // Reset to page 0 when the visible count changes (resize)
   useEffect(() => { setPage(0) }, [visibleCount])
 
   const goNext = () => { setDir(1);  setPage(p => (p + 1) % totalPages) }
   const goPrev = () => { setDir(-1); setPage(p => (p - 1 + totalPages) % totalPages) }
   const goTo   = (i) => { setDir(i > page ? 1 : -1); setPage(i) }
 
-  // The cards shown on this page (looping with modulo)
   const displayedListings = listings.length > 0
     ? Array.from({ length: visibleCount }, (_, i) =>
         listings[(page * visibleCount + i) % listings.length]
       ).filter(Boolean)
     : []
 
-  // Tailwind grid class — all strings are static literals so Tailwind includes them
   const gridClass =
     visibleCount === 1 ? 'grid-cols-1' :
     visibleCount === 2 ? 'grid-cols-2' :
@@ -180,40 +183,29 @@ export default function HomeClient({ user, listings }) {
       </section>
 
       {/* ── Carousel section ── */}
-      <motion.section className="px-8 py-24 max-w-6xl mx-auto" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }} variants={stagger}>
+      <motion.section className="px-8 py-24 max-w-[80rem] mx-auto" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }} variants={stagger}>
 
-        {/* Header row — title left, controls + "view all" right */}
-        <motion.div variants={fadeUp} className="flex items-center justify-between mb-10 gap-4 flex-wrap">
+        {/* Header row — title left, "view all" right */}
+        <motion.div variants={fadeUp} className="flex items-center justify-between mb-10 gap-4 flex-wrap max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold text-toro-dark">Latest Services</h2>
-
-          <div className="flex items-center gap-3">
-            {/* Both nav buttons always visible — looping carousel has no start/end */}
-            {totalPages > 1 && (
-              <>
-                <NavBtn onClick={goPrev} label="Previous page">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                </NavBtn>
-
-                <span className="text-xs font-semibold text-toro-dark/30 tabular-nums min-w-[36px] text-center select-none">
-                  {page + 1} / {totalPages}
-                </span>
-
-                <NavBtn onClick={goNext} label="Next page">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                </NavBtn>
-              </>
-            )}
-
-            <button onClick={() => router.push('/listings')} className="text-toro-gold font-bold hover:underline text-sm uppercase tracking-widest ml-1">
-              View All →
-            </button>
-          </div>
+          <button onClick={() => router.push('/listings')} className="text-toro-gold font-bold hover:underline text-sm uppercase tracking-widest ml-1">
+            View All →
+          </button>
         </motion.div>
 
-        {/* Cards */}
+        {/* Cards & Arrows Container */}
         {listings.length > 0 ? (
-          <>
-            <div className="overflow-hidden">
+          <div className="relative group">
+            
+            {/* Left Minimalist Arrow */}
+            {totalPages > 1 && (
+              <button onClick={goPrev} aria-label="Previous" className="absolute -left-6 md:-left-12 top-1/2 -translate-y-1/2 z-20 p-2 text-toro-dark/20 hover:text-toro-gold transition-colors duration-200">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              </button>
+            )}
+
+            {/* Overflow wrapper with padding trick to prevent shadow clipping */}
+            <div className="overflow-hidden px-4 -mx-4 py-8 -my-8 max-w-6xl mx-auto">
               <AnimatePresence mode="wait" custom={dir}>
                 <motion.div
                   key={`${page}-${visibleCount}`}
@@ -231,9 +223,16 @@ export default function HomeClient({ user, listings }) {
               </AnimatePresence>
             </div>
 
+            {/* Right Minimalist Arrow */}
+            {totalPages > 1 && (
+              <button onClick={goNext} aria-label="Next" className="absolute -right-6 md:-right-12 top-1/2 -translate-y-1/2 z-20 p-2 text-toro-dark/20 hover:text-toro-gold transition-colors duration-200">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            )}
+
             {/* Dot indicators */}
             {totalPages > 1 && (
-              <div className="flex justify-center gap-2 mt-8">
+              <div className="flex justify-center gap-2 mt-4">
                 {Array.from({ length: totalPages }, (_, i) => (
                   <button
                     key={i} onClick={() => goTo(i)}
@@ -245,9 +244,9 @@ export default function HomeClient({ user, listings }) {
                 ))}
               </div>
             )}
-          </>
+          </div>
         ) : (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="toro-empty-state">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="toro-empty-state max-w-6xl mx-auto">
             <div className="w-16 h-16 text-toro-dark/15"><ToretBull className="w-full h-full" /></div>
             <div className="flex flex-col gap-1.5">
               <p className="text-toro-dark text-lg font-bold">No services here yet</p>

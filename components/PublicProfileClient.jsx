@@ -206,20 +206,16 @@ export default function PublicProfileClient({ profile, listings, isOwnProfile, c
           {/* CTA row */}
           <div className="flex gap-3 mt-2 flex-wrap">
             {isOwnProfile ? (
-              <button onClick={() => router.push('/profile')} className="toro-btn-outline !py-2 !px-5 !text-xs">
+              <button onClick={() => router.push('/profile/edit')} className="toro-btn-outline !py-2 !px-5 !text-xs">
                 Edit profile
               </button>
             ) : (
-              <>
-                {canContact && (
-                  <button onClick={() => setShowContact(true)} className="toro-btn-primary !py-2 !px-5 !text-xs">
-                    Send message
-                  </button>
-                )}
-                <button onClick={() => router.push('/listings')} className="toro-btn-outline !py-2 !px-5 !text-xs">
-                  Browse all services
+              // Can only contact if: visitor is logged in, not own profile, and profile has at least one listing
+              canContact && (
+                <button onClick={() => setShowContact(true)} className="toro-btn-primary !py-2 !px-5 !text-xs">
+                  Send message
                 </button>
-              </>
+              )
             )}
           </div>
         </motion.div>
@@ -274,16 +270,23 @@ export default function PublicProfileClient({ profile, listings, isOwnProfile, c
 
             {listings.length === 0 ? (
               <motion.div variants={fadeUp} className="toro-empty-state">
-                <div className="w-14 h-14 text-toro-dark/15"><ToretBull className="w-full h-full" /></div>
+                <div className="w-16 h-16 text-toro-dark/15">
+                  <ToretBull className="w-full h-full" />
+                </div>
                 <div className="flex flex-col gap-1.5">
-                  <p className="text-toro-dark font-bold">No services yet</p>
-                  <p className="text-toro-dark/40 text-sm max-w-xs mx-auto">
-                    {isOwnProfile ? 'Post your first service to start earning.' : 'This member hasn\'t posted any services yet.'}
+                  <p className="text-toro-dark text-lg font-bold">
+                    {isOwnProfile ? 'No services yet' : 'No services offered'}
+                  </p>
+                  <p className="text-toro-dark/40 text-sm max-w-xs mx-auto font-medium text-center">
+                    {isOwnProfile 
+                      ? 'Post your first service to start helping the community and earning.' 
+                      : 'This member hasn\'t posted any active services yet.'}
                   </p>
                 </div>
+                
                 {isOwnProfile && (
-                  <button onClick={() => router.push('/listings/create')} className="toro-btn-primary !py-2.5 !px-6">
-                    Post a service
+                  <button onClick={() => router.push('/listings/create')} className="toro-btn-primary !py-2.5 !px-6 mt-2">
+                    Post your service
                   </button>
                 )}
               </motion.div>
