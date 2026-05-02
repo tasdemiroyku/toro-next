@@ -53,15 +53,25 @@ export const metadata = {
 }
 
 export default async function RootLayout({ children }) {
-  // Fetch user server-side so Header renders with correct auth state
-  // immediately — no client-side flicker from logged-out → logged-in.
   const supabase = await createClient()
+  
   const { data: { user } } = await supabase.auth.getUser()
+
+  let profile = null
+  if (user) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', user.id)
+      .single()
+      
+    profile = data
+  }
 
   return (
     <html lang="it" className={cormorant.variable}>
       <body className="bg-[#FAFAF7] font-sans antialiased min-h-screen flex flex-col">
-        <Header user={user} />
+        <Header user={user} profile={profile} />
 
         <main className="flex-grow">
           {children}

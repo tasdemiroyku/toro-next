@@ -9,12 +9,13 @@ const CATEGORIES = [{ value: '', label: 'All' }, ...BASE_CATEGORIES]
 
 export default function ListingsClient({
   user,
-  initialListings,
+  initialListings = [],
+  initialProfiles = [], // <-- EKLENDI: Arama sonucunda bulunan ogrenciler
   searchQuery = '',
   activeCategory = '',
   currentPage = 1,
   totalPages = 1,
-  totalCount = 0,
+  totalCount = 0, // <-- EKLENDI: Cokmeyi engelleyen eksik prop
 }) {
   const router = useRouter()
 
@@ -51,11 +52,11 @@ export default function ListingsClient({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-toro-dark">
-            Services in Torino
+            {searchQuery ? 'Search Results' : 'Services in Torino'}
           </h1>
           <p className="text-sm text-toro-dark/40 mt-1 font-medium">
             {searchQuery
-              ? `${totalCount} result${totalCount !== 1 ? 's' : ''} for "${searchQuery}"`
+              ? `Found ${totalCount} services${initialProfiles.length > 0 ? ` and ${initialProfiles.length} students` : ''} for "${searchQuery}"`
               : `${totalCount} service${totalCount !== 1 ? 's' : ''} available`}
           </p>
         </div>
@@ -84,6 +85,65 @@ export default function ListingsClient({
             </button>
           </span>
         </div>
+      )}
+
+      {/* --- UNIFIED SEARCH: MATCHED STUDENTS SECTION --- */}
+      {searchQuery && initialProfiles.length > 0 && (
+        <section className="flex flex-col gap-4">
+          <h2 className="text-xs font-black text-toro-gold uppercase tracking-widest">
+            Matched Students
+          </h2>
+          <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-0 sm:px-0 scrollbar-hide">
+            {initialProfiles.map((profile) => (
+              <motion.div
+                key={profile.id}
+                whileHover={{ y: -4 }}
+                onClick={() => router.push(`/u/${profile.username}`)}
+                className="flex items-start gap-4 bg-white/60 backdrop-blur-sm border border-toro-dark/10 p-4 rounded-3xl min-w-[280px] max-w-[320px] shadow-sm hover:shadow-md hover:border-toro-gold hover:bg-white transition-all cursor-pointer shrink-0 group"
+              >
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-toro-dark/5 shrink-0 border border-toro-dark/10 flex items-center justify-center">
+                  {profile.avatar_url ? (
+                    <img src={profile.avatar_url} className="w-full h-full object-cover" alt="" />
+                  ) : (
+                    <span className="text-toro-dark/40 font-bold text-lg">
+                      {profile.full_name?.[0]?.toUpperCase() || '?'}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-col min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-toro-dark truncate group-hover:text-toro-gold transition-colors">
+                      {profile.full_name}
+                    </span>
+                    {profile.is_verified && (
+                      <span title="Verified Student" className="w-3.5 h-3.5 rounded-full bg-green-500 flex items-center justify-center shrink-0">
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-toro-dark/40 font-mono truncate">@{profile.username}</span>
+                  
+                  {profile.university && (
+                    <div className="flex items-center gap-1 mt-1.5">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-toro-dark/30 shrink-0">
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                      </svg>
+                      <span className="text-[10px] text-toro-dark/50 truncate italic">
+                        {profile.university}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {profile.skills && (
+                    <p className="text-[10px] text-toro-gold font-bold truncate mt-1">
+                      {profile.skills}
+                    </p>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* Category filter chips — server-driven via URL */}
@@ -115,7 +175,7 @@ export default function ListingsClient({
           </div>
           <div className="flex flex-col gap-1.5">
             <p className="text-toro-dark text-lg font-bold">
-              {searchQuery ? `No results for "${searchQuery}"` : 'No services here yet'}
+              {searchQuery ? `No service results for "${searchQuery}"` : 'No services here yet'}
             </p>
             <p className="text-toro-dark/40 text-sm max-w-xs mx-auto font-medium">
               {searchQuery

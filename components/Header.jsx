@@ -94,9 +94,18 @@ function LanguageDropdown() {
   )
 }
 
-function UserDropdown({ user, setUser, hasUnread }) {
+function UserDropdown({ user, profile, setUser, hasUnread }) {
   const router = useRouter()
   const { open, setOpen, ref, handleMouseEnter, handleMouseLeave } = useDropdown()
+
+  const handleProfileClick = () => {
+    setOpen(false)
+    if (profile?.username) {
+      router.push(`/u/${profile.username}`)
+    } else {
+      router.push('/onboarding')
+    }
+  }
 
   const handleLogout = async () => {
     setUser(null)
@@ -167,7 +176,7 @@ function UserDropdown({ user, setUser, hasUnread }) {
               </button>
 
               <button
-                onClick={() => { setOpen(false); router.push('/profile') }}
+                onClick={handleProfileClick}
                 className="w-full text-left px-4 py-2.5 text-sm text-toro-dark hover:bg-toro-dark/5 transition flex items-center gap-2.5"
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -222,10 +231,11 @@ function UserDropdown({ user, setUser, hasUnread }) {
   )
 }
 
-export default function Header({ user: initialUser = null }) {
+export default function Header({ user: initialUser = null, profile: initialProfile = null }) {
   const router = useRouter()
   const pathname = usePathname()
   const [user, setUser] = useState(initialUser)
+  const [profile, setProfile] = useState(initialProfile)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [headerSearch, setHeaderSearch] = useState('')
   const [hasUnread, setHasUnread] = useState(false) // 🚨 Unread State Added
@@ -398,7 +408,7 @@ export default function Header({ user: initialUser = null }) {
             <div className="w-px h-4 bg-toro-light/15 mx-0.5" />
 
             {user ? (
-              <UserDropdown user={user} setUser={setUser} hasUnread={hasUnread} />
+              <UserDropdown user={user} profile={profile} setUser={setUser} hasUnread={hasUnread} />
             ) : (
               <div className="flex items-center gap-5">
                 <button
@@ -419,7 +429,7 @@ export default function Header({ user: initialUser = null }) {
 
           <div className="flex md:hidden items-center gap-3">
             {/* Mobile User Icon Also Shows Unread Dot! */}
-            {user && <UserDropdown user={user} setUser={setUser} hasUnread={hasUnread} />}
+            {user && <UserDropdown user={user} profile={profile} setUser={setUser} hasUnread={hasUnread} />}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="flex flex-col gap-1.5 p-2"

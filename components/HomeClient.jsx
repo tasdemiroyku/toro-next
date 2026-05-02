@@ -216,8 +216,12 @@ export default function HomeClient({ user, listings }) {
                   transition={{ duration: 0.26, ease: 'easeInOut' }}
                   className={`grid ${gridClass} gap-6`}
                 >
-                  {displayedListings.map(item => (
-                    <ListingCard key={item.id} item={item} onClick={() => router.push(`/listings/${item.id}`)} />
+                  {displayedListings.map((item, index) => (
+                    <ListingCard 
+                      key={`${item.id}-${index}`} 
+                      item={item} 
+                      onClick={() => router.push(`/listings/${item.id}`)} 
+                    />
                   ))}
                 </motion.div>
               </AnimatePresence>
