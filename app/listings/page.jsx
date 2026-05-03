@@ -45,6 +45,7 @@ export default async function ListingsPage({ searchParams }) {
       .from('profiles')
       .select('id, full_name, avatar_url, username, is_verified, bio, skills')
       .or(`full_name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%,skills.ilike.%${searchQuery}%,bio.ilike.%${searchQuery}%`)
+      .not('username', 'is', null)
       .limit(5) // Limit to top 5 matches to keep the focus on services
     
     profiles = matchedProfiles ?? []

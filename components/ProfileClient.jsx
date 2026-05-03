@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { createClient } from '@/utils/supabase/client'
-import ToretBull from '@/components/ToretBull'
 import { CATEGORY_LABEL, CATEGORY_DEFAULT_IMAGE } from '@/lib/categories'
+import { sendMessage } from '@/app/actions/messages'
+import ToretBull from '@/components/ToretBull'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -29,26 +29,32 @@ function VerifiedBadge() {
   )
 }
 
-// ── Contact modal — picks the provider's most recent listing automatically ────
-function ContactModal({ profile, listings, currentUserId, onClose }) {
-  const supabase = createClient()
-  const router   = useRouter()
-  const [message, setMessage]     = useState('')
-  const [sending, setSending]     = useState(false)
-  const [sent, setSent]           = useState(false)
+// ── Contact modal ─────────────────────────────────────────────────────────────
+function ContactModal({ profile, listings, onClose }) {
+  const router = useRouter()
+  const [message, setMessage]       = useState('')
+  const [sending, setSending]       = useState(false)
+  const [sent, setSent]             = useState(false)
+  const [error, setError]           = useState(null)
   const [selectedId, setSelectedId] = useState(listings[0]?.id ?? null)
 
   const handleSend = async () => {
     if (!message.trim() || !selectedId || sending) return
     setSending(true)
-    const { error } = await supabase.from('messages').insert({
-      listing_id:  selectedId,
-      sender_id:   currentUserId,
-      receiver_id: profile.id,
-      content:     message.trim(),
-    })
-    if (!error) setSent(true)
-    setSending(false)
+    setError(null)
+
+    try {
+      await sendMessage({
+        listingId:  selectedId,
+        receiverId: profile.id,
+        content:    message,
+      })
+      setSent(true)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -91,7 +97,6 @@ function ContactModal({ profile, listings, currentUserId, onClose }) {
               <p className="text-xs text-toro-dark/40">Choose which service your message is about.</p>
             </div>
 
-            {/* Listing selector — only shown if they have multiple listings */}
             {listings.length > 1 && (
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-toro-dark/50 uppercase tracking-wide">Regarding</label>
@@ -107,7 +112,6 @@ function ContactModal({ profile, listings, currentUserId, onClose }) {
               </div>
             )}
 
-            {/* Single listing — just show the title */}
             {listings.length === 1 && (
               <div className="text-sm font-semibold text-toro-dark bg-toro-dark/5 rounded-2xl px-4 py-2.5 truncate">
                 {listings[0].title}
@@ -126,6 +130,10 @@ function ContactModal({ profile, listings, currentUserId, onClose }) {
               />
               <p className="text-xs text-toro-dark/25 text-right">{message.length}/500</p>
             </div>
+
+            {error && (
+              <p className="text-xs text-red-500 font-semibold">{error}</p>
+            )}
 
             <div className="flex gap-3">
               <button onClick={onClose} className="flex-1 toro-btn-outline">Cancel</button>
@@ -155,7 +163,6 @@ export default function ProfileClient({ profile, listings, isOwnProfile, current
     profile.username?.[0]?.toUpperCase() ||
     '?'
 
-  // Can only contact if: visitor is logged in, not own profile, and profile has at least one listing
   const canContact = !isOwnProfile && !!currentUserId && listings.length > 0
 
   return (
@@ -164,7 +171,6 @@ export default function ProfileClient({ profile, listings, isOwnProfile, current
       {/* ── Profile header ── */}
       <motion.div initial="hidden" animate="visible" variants={stagger} className="flex flex-col sm:flex-row items-start gap-6 mb-12">
 
-        {/* Avatar */}
         <motion.div variants={fadeUp} className="shrink-0">
           <div className="relative w-24 h-24 rounded-full overflow-hidden bg-toro-dark shadow-lg">
             {profile.avatar_url ? (
@@ -175,7 +181,6 @@ export default function ProfileClient({ profile, listings, isOwnProfile, current
           </div>
         </motion.div>
 
-        {/* Name, handle, meta */}
         <motion.div variants={fadeUp} className="flex-1 min-w-0 flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-bold text-toro-dark">{profile.full_name || 'Toro Member'}</h1>
@@ -203,14 +208,12 @@ export default function ProfileClient({ profile, listings, isOwnProfile, current
             )}
           </div>
 
-          {/* CTA row */}
           <div className="flex gap-3 mt-2 flex-wrap">
             {isOwnProfile ? (
               <button onClick={() => router.push('/profile/edit')} className="toro-btn-outline !py-2 !px-5 !text-xs">
                 Edit profile
               </button>
             ) : (
-              // Can only contact if: visitor is logged in, not own profile, and profile has at least one listing
               canContact && (
                 <button onClick={() => setShowContact(true)} className="toro-btn-primary !py-2 !px-5 !text-xs">
                   Send message
@@ -278,12 +281,11 @@ export default function ProfileClient({ profile, listings, isOwnProfile, current
                     {isOwnProfile ? 'No services yet' : 'No services offered'}
                   </p>
                   <p className="text-toro-dark/40 text-sm max-w-xs mx-auto font-medium text-center">
-                    {isOwnProfile 
-                      ? 'Post your first service to start helping the community and earning.' 
-                      : 'This member hasn\'t posted any active services yet.'}
+                    {isOwnProfile
+                      ? 'Post your first service to start helping the community and earning.'
+                      : "This member hasn't posted any active services yet."}
                   </p>
                 </div>
-                
                 {isOwnProfile && (
                   <button onClick={() => router.push('/listings/create')} className="toro-btn-primary !py-2.5 !px-6 mt-2">
                     Post your service
@@ -343,7 +345,6 @@ export default function ProfileClient({ profile, listings, isOwnProfile, current
           <ContactModal
             profile={profile}
             listings={listings}
-            currentUserId={currentUserId}
             onClose={() => setShowContact(false)}
           />
         )}

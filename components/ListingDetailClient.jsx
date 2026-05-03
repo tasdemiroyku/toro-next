@@ -2,35 +2,40 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
 import { CATEGORY_LABEL, CATEGORY_DEFAULT_IMAGE } from '@/lib/categories'
+import { sendMessage } from '@/app/actions/messages'
+import { createClient } from '@/utils/supabase/client'
 
 export default function ListingDetailClient({ listing: initialListing, profile, user, isOwner }) {
   const router = useRouter()
-  const [listing, setListing] = useState(initialListing)
-  const [message, setMessage] = useState('')
+  const [listing, setListing]         = useState(initialListing)
+  const [message, setMessage]         = useState('')
   const [messageSent, setMessageSent] = useState(false)
-  const [sending, setSending] = useState(false)
-  const [deleting, setDeleting] = useState(false)
+  const [sending, setSending]         = useState(false)
+  const [sendError, setSendError]     = useState(null)
+  const [deleting, setDeleting]       = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
-  // ── Cover: uploaded photo → category default → null ──
   const cover = listing.image_url || CATEGORY_DEFAULT_IMAGE[listing.category] || null
 
   const handleContact = async () => {
     if (!user) { router.push('/login'); return }
-    if (!message.trim() || message.length > 500) return
-
     setSending(true)
-    const supabase = createClient()
-    const { error } = await supabase.from('messages').insert({
-      listing_id: listing.id,
-      sender_id: user.id,
-      receiver_id: listing.user_id,
-      content: message.trim(),
-    })
-    if (!error) { setMessageSent(true); setMessage('') }
-    setSending(false)
+    setSendError(null)
+
+    try {
+      await sendMessage({
+        listingId:  listing.id,
+        receiverId: listing.user_id,
+        content:    message,
+      })
+      setMessageSent(true)
+      setMessage('')
+    } catch (err) {
+      setSendError(err.message)
+    } finally {
+      setSending(false)
+    }
   }
 
   const handleDelete = async () => {
@@ -66,14 +71,12 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
             ← Back to listings
           </button>
 
-          {/* Cover image */}
           {cover && (
             <div className="w-full h-64 rounded-2xl overflow-hidden">
               <img src={cover} alt={listing.title} className="w-full h-full object-cover" />
             </div>
           )}
 
-          {/* Category + title */}
           <div className="flex flex-col gap-2">
             <span className="text-xs font-semibold text-toro-gold uppercase tracking-wide">
               {CATEGORY_LABEL[listing.category] || listing.category}
@@ -81,7 +84,6 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
             <h1 className="text-3xl font-bold text-toro-dark leading-tight">{listing.title}</h1>
           </div>
 
-          {/* Meta row */}
           <div className="flex flex-wrap gap-4 text-sm text-toro-dark/50">
             {listing.location && <span>📍 {listing.location}</span>}
             {listing.languages?.length > 0 && <span>🗣 {listing.languages.join(', ')}</span>}
@@ -92,7 +94,6 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
             </span>
           </div>
 
-          {/* Description */}
           <div className="bg-white border border-toro-dark/10 rounded-2xl p-6">
             <h2 className="text-sm font-semibold text-toro-dark/50 uppercase tracking-wide mb-3">
               About this service
@@ -102,7 +103,6 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
             </p>
           </div>
 
-          {/* Owner controls */}
           {isOwner && (
             <div className="bg-toro-dark/5 rounded-2xl p-4 flex flex-col gap-3">
               <p className="text-xs font-semibold text-toro-dark/50 uppercase tracking-wide">Your listing</p>
@@ -158,6 +158,9 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
                       disabled={!user}
                       className="toro-input !rounded-xl resize-none disabled:opacity-50"
                     />
+                    {sendError && (
+                      <p className="text-xs text-red-500 font-semibold">{sendError}</p>
+                    )}
                     <button
                       onClick={() => !user ? router.push('/login') : handleContact()}
                       disabled={sending}
@@ -171,7 +174,7 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
             )}
           </div>
 
-          {/* Provider card — clickable when username exists ── */}
+          {/* Provider card */}
           <div className="bg-white border border-toro-dark/10 rounded-2xl p-5 flex flex-col gap-3">
             <p className="text-xs font-semibold text-toro-dark/50 uppercase tracking-wide">Provider</p>
 

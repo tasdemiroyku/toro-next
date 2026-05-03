@@ -208,109 +208,6 @@ function LanguageTagSelector({ selected, onChange }) {
   )
 }
 
-// ─── Username field with debounced availability check ────────────────────────
-
-/**
- * usernameStatus: 'idle' | 'typing' | 'checking' | 'available' | 'taken' | 'invalid'
- */
-function UsernameField({ value, initialUsername, onChange }) {
-  const [status, setStatus] = useState('idle')
-  const debounceRef = useRef(null)
-  const supabase = createClient()
-
-  const check = useCallback(async (val) => {
-    if (!val) { setStatus('idle'); return }
-    if (!USERNAME_RE.test(val)) { setStatus('invalid'); return }
-    if (val === initialUsername) { setStatus('available'); return }
-
-    setStatus('checking')
-    const { data } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('username', val)
-      .maybeSingle()
-
-    setStatus(data ? 'taken' : 'available')
-  }, [initialUsername]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleChange = (e) => {
-    // Enforce lowercase + allowed chars while typing
-    const raw = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '')
-    onChange(raw)
-    setStatus('typing')
-    clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => check(raw), 600)
-  }
-
-  useEffect(() => () => clearTimeout(debounceRef.current), [])
-
-  // Status indicator shown inside the input
-  const indicator = () => {
-    if (status === 'checking') return (
-      <svg className="animate-spin w-4 h-4 text-toro-dark/30" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.2"/>
-        <path d="M12 2v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
-    )
-    if (status === 'available') return (
-      <svg className="w-4 h-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 6 9 17l-5-5"/>
-      </svg>
-    )
-    if (status === 'taken') return (
-      <svg className="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-      </svg>
-    )
-    if (status === 'invalid' && value.length > 0) return (
-      <svg className="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
-    )
-    return null
-  }
-
-  const hint = {
-    idle: 'Your public handle — e.g. @oykü becomes /u/oyku',
-    typing: 'Checking…',
-    checking: 'Checking availability…',
-    available: `✓ @${value} is available`,
-    taken: `@${value} is already taken`,
-    invalid: 'Only lowercase letters, numbers and underscores. 3–30 characters.',
-  }[status] ?? ''
-
-  const hintColor = {
-    available: 'text-green-600',
-    taken: 'text-red-400',
-    invalid: 'text-amber-500',
-  }[status] ?? 'text-toro-dark/30'
-
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-xs text-toro-dark/50 tracking-wide">Username</label>
-      <div className="relative">
-        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-toro-dark/40 font-medium select-none pointer-events-none">
-          @
-        </span>
-        <input
-          type="text"
-          value={value}
-          onChange={handleChange}
-          placeholder="your_handle"
-          maxLength={30}
-          className="toro-input !pl-8 !pr-10"
-        />
-        <span className="absolute right-4 top-1/2 -translate-y-1/2">
-          {indicator()}
-        </span>
-      </div>
-      {hint && (
-        <p className={`text-xs ${hintColor} transition-colors`}>{hint}</p>
-      )}
-    </div>
-  )
-}
-
 // ─── Section: Personal Info ──────────────────────────────────────────────────
 
 function PersonalSection({ user, profile, setProfile }) {
@@ -752,7 +649,7 @@ function SecuritySection({ user }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function ProfileClient({ user, initialProfile }) {
+export default function EditProfileClient({ user, initialProfile }) {
   const [profile, setProfile] = useState(initialProfile)
   const [activeTab, setActiveTab] = useState('personal')
   const [uploadingAvatar, setUploadingAvatar] = useState(false)

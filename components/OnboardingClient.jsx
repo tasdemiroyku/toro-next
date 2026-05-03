@@ -236,9 +236,7 @@ function StepUsername({ form, setForm }) {
 }
 
 // Step 1: Tell us about yourself
-function StepPersonal({ user, form, setForm, avatarPreview, setAvatarPreview, avatarFile, setAvatarFile }) {
-  const [uploading] = useState(false)
-
+function StepPersonal({ user, form, setForm, avatarPreview, setAvatarPreview, setAvatarFile, saving }) {
   const handleAvatarPick = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -269,7 +267,7 @@ function StepPersonal({ user, form, setForm, avatarPreview, setAvatarPreview, av
 
         <AvatarUpload
           preview={avatarPreview}
-          uploading={uploading}
+          uploading={saving}
           onPick={handleAvatarPick}
         />
 
@@ -444,7 +442,7 @@ export default function OnboardingClient({ user, profile, redirectAfter }) {
 
   // Build steps dynamically
   const usernameStep = StepUsername({ form, setForm })
-  const personalStep = StepPersonal({ user, form, setForm, avatarPreview, setAvatarPreview, avatarFile, setAvatarFile })
+  const personalStep = StepPersonal({ user, form, setForm, avatarPreview, setAvatarPreview, setAvatarFile, saving })
   const passwordStep = StepPassword({ form, setForm })
 
   const steps = oauth

@@ -296,32 +296,6 @@ export default function InboxClient({ initialMessages, currentUserId, activeList
     router.replace('/inbox', { scroll: false })
   }, [router])
 
-  // ── REAL-TIME FIX: fetch full enriched message on INSERT ──────────────────
-  // payload.new is a raw DB row with no joins — we must re-fetch with profiles
-  // and listing joined so groupConversations can build the sidebar correctly.
-  useEffect(() => {
-    const channel = supabase
-      .channel(`inbox-global:${currentUserId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${currentUserId}` },
-        async (payload) => {
-          const { data } = await supabase
-            .from('messages')
-            .select(MESSAGE_SELECT)
-            .eq('id', payload.new.id)
-            .single()
-
-          if (data) {
-            setMessages(prev =>
-              prev.some(m => m.id === data.id) ? prev : [data, ...prev]
-            )
-          }
-        }
-      )
-      .subscribe()
-
-    return () => supabase.removeChannel(channel)
-  }, [currentUserId]) // eslint-disable-line react-hooks/exhaustive-deps
-
   const handleNewMessage = useCallback(msg => {
     setMessages(prev => {
       const exists = prev.some(m => m.id === msg.id)
