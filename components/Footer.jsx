@@ -51,13 +51,13 @@ export default function Footer() {
             >
               Toro
             </span>
-            <span className="text-xs font-medium text-toro-light/30 ml-2 hidden sm:inline-block">
+            <span suppressHydrationWarning className="text-xs font-medium text-toro-light/30 ml-2 hidden sm:inline-block">
               © {new Date().getFullYear()} · Torino, Piemonte
             </span>
           </div>
 
           {/* Mobile-only copyright */}
-          <span className="text-[10px] font-medium text-toro-light/30 sm:hidden">
+          <span suppressHydrationWarning className="text-[10px] font-medium text-toro-light/30 sm:hidden">
              © {new Date().getFullYear()} · Torino, Piemonte
           </span>
 

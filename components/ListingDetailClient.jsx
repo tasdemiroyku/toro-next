@@ -1,5 +1,7 @@
 'use client'
 
+import { deleteListing, toggleListingActive } from '@/app/actions/listings'
+import { useTransition } from 'react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CATEGORY_LABEL, CATEGORY_DEFAULT_IMAGE } from '@/lib/categories'
@@ -13,7 +15,6 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
   const [messageSent, setMessageSent] = useState(false)
   const [sending, setSending]         = useState(false)
   const [sendError, setSendError]     = useState(null)
-  const [deleting, setDeleting]       = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const cover = listing.image_url || CATEGORY_DEFAULT_IMAGE[listing.category] || null
@@ -38,24 +39,29 @@ export default function ListingDetailClient({ listing: initialListing, profile, 
     }
   }
 
-  const handleDelete = async () => {
-    setDeleting(true)
-    const supabase = createClient()
-    await supabase.from('listings').delete().eq('id', listing.id)
-    router.push('/listings')
-    router.refresh()
-  }
+  const [isPending, startTransition] = useTransition()
+  
+  const handleDelete = () => {
+  startTransition(async () => {
+    try {
+      await deleteListing(listing.id)
+      router.push('/listings')
+    } catch (error) {
+      setShowDeleteModal(false)
+    }
+  })
+}
 
-  const handleToggleActive = async () => {
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('listings')
-      .update({ is_active: !listing.is_active })
-      .eq('id', listing.id)
-      .select()
-      .single()
-    if (data) { setListing(data); router.refresh() }
-  }
+const handleToggleActive = () => {
+  startTransition(async () => {
+    try {
+      const data = await toggleListingActive(listing.id, listing.is_active)
+      setListing(data)
+    } catch (error) {
+       console.error("Toggle failed:", error)
+    }
+  })
+}
 
   return (
     <div className="max-w-6xl mx-auto px-8 py-12">

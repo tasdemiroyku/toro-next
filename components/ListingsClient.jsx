@@ -10,12 +10,12 @@ const CATEGORIES = [{ value: '', label: 'All' }, ...BASE_CATEGORIES]
 export default function ListingsClient({
   user,
   initialListings = [],
-  initialProfiles = [], // <-- EKLENDI: Arama sonucunda bulunan ogrenciler
+  initialProfiles = [],
   searchQuery = '',
   activeCategory = '',
   currentPage = 1,
   totalPages = 1,
-  totalCount = 0, // <-- EKLENDI: Cokmeyi engelleyen eksik prop
+  totalCount,
 }) {
   const router = useRouter()
 

@@ -240,6 +240,11 @@ function StepPersonal({ user, form, setForm, avatarPreview, setAvatarPreview, se
   const handleAvatarPick = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
+
+    if (avatarPreview?.url?.startsWith('blob:')) {
+      URL.revokeObjectURL(avatarPreview.url)
+    }
+
     setAvatarFile(file)
     setAvatarPreview({ url: URL.createObjectURL(file), initials: form.fullName?.[0]?.toUpperCase() || '?' })
     e.target.value = ''
@@ -430,6 +435,14 @@ export default function OnboardingClient({ user, profile, redirectAfter }) {
     const initial = (profile?.full_name?.[0] || user?.user_metadata?.full_name?.[0] || '?').toUpperCase()
     return oauthAvatar ? { url: oauthAvatar, initials: initial } : { url: null, initials: initial }
   })
+
+  useEffect(() => {
+      return () => {
+        if (avatarPreview?.url?.startsWith('blob:')) {
+          URL.revokeObjectURL(avatarPreview.url)
+        }
+      }
+    }, [avatarPreview?.url])
 
   const [form, setForm] = useState({
     username:        '',
@@ -624,10 +637,6 @@ export default function OnboardingClient({ user, profile, redirectAfter }) {
             </div>
           </div>
         </motion.div>
-
-        <p className="text-center text-xs text-toro-dark/30 mt-6 font-medium">
-          Il marketplace degli studenti di Torino
-        </p>
       </div>
     </div>
   )

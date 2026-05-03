@@ -256,19 +256,14 @@ function PersonalSection({ user, profile, setProfile }) {
   }
 
   const handleDeleteAccount = () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to permanently delete your account, all your listings, and messages? This action cannot be undone."
-    )
-    
-    if (confirmed) {
-      startTransition(async () => {
-        try {
-          await deleteUserAccount()
-        } catch (error) {
-          alert(error.message)
-        }
-      })
-    }
+    startTransition(async () => {
+      try {
+        await deleteUserAccount()
+      } catch (error) {
+        setShowDeleteModal(false)
+        setGlobalToast({ message: error.message, type: 'error' })
+      }
+    })
   }
 
   return (

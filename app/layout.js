@@ -17,7 +17,7 @@ export const metadata = {
   },
   icons: {
     icon: '/favicon.svg',
-    apple: '/apple-touch-icon.svg',
+    apple: '/apple-touch-icon.png',
   },
   description: 'Il marketplace degli studenti di Torino. Trova studenti per ripetizioni, pulizie, aiuto con documenti consolari e molto altro.',
   keywords: ['studenti torino', 'ripetizioni torino', 'pulizie torino', 'lavoro studenti torino', 'marketplace torino', 'öğrenci hizmetleri torino'],
@@ -69,7 +69,7 @@ export default async function RootLayout({ children }) {
   }
 
   return (
-    <html lang="it" className={cormorant.variable}>
+    <html lang="it" className={cormorant.variable} suppressHydrationWarning>
       <body className="bg-[#FAFAF7] font-sans antialiased min-h-screen flex flex-col">
         <Header user={user} profile={profile} />
 

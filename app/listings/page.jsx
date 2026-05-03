@@ -12,7 +12,8 @@ export default async function ListingsPage({ searchParams }) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const { q, category, page } = await searchParams
-  const searchQuery = q?.trim() ?? ''
+  const rawQuery = q?.trim().slice(0, 100) ?? ''
+  const searchQuery = rawQuery.replace(/[().,]/g, '')
   const activeCategory = category?.trim() ?? ''
   const currentPage = Math.max(1, parseInt(page ?? '1', 10))
   
